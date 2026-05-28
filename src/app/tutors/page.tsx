@@ -1,14 +1,33 @@
 import TutorCard from "@/components/TutorCard";
 import { MOCK_SUBJECTS } from "@/lib/mock-data";
+import { prisma } from "@/lib/prisma";
 import type { Tutor } from "@/types";
 
 async function getTutors(): Promise<Tutor[]> {
-  const res = await fetch("http://localhost:3000/api/tutors", {
-    cache: "no-store",
+  const profiles = await prisma.tutorProfile.findMany({
+    include: {
+      user: { select: { id: true, name: true, avatarUrl: true } },
+      subjects: { select: { subjectName: true } },
+      tags: { select: { tag: true } },
+    },
+    orderBy: { rating: "desc" },
   });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.tutors as Tutor[];
+
+  return profiles.map((p) => ({
+    id: p.id,
+    name: p.user.name,
+    avatar: p.user.avatarUrl ?? "",
+    university: p.university,
+    major: p.major,
+    grade: p.grade,
+    hourlyRate: p.hourlyRate,
+    rating: p.rating,
+    reviewCount: p.reviewCount,
+    bio: p.bio,
+    available: p.available,
+    subjects: p.subjects.map((s) => s.subjectName),
+    tags: p.tags.map((t) => t.tag),
+  }));
 }
 
 export default async function TutorsPage() {
