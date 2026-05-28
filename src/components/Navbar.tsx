@@ -25,10 +25,10 @@ export default async function Navbar() {
             <Link href="/requirements" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
               需求大厅
             </Link>
-            <Link href="#subjects" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+            <Link href="/#subjects" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
               学科分类
             </Link>
-            <Link href="#how-it-works" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+            <Link href="/#how-it-works" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
               如何使用
             </Link>
           </nav>
