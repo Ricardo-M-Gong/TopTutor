@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import ApplicationActions from "@/components/ApplicationActions";
+import ToggleRequirementButton from "@/components/ToggleRequirementButton";
 
 const GRADE_LABEL: Record<string, string> = {
   PRIMARY: "小学", MIDDLE: "初中", HIGH: "高中",
@@ -91,33 +92,38 @@ export default async function ParentDashboardPage() {
             <div className="space-y-3">
               {requirements.map((req) => (
                 <div key={req.id} className="border border-gray-100 rounded-xl p-4">
-                  <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium">
-                      {req.subjectName}
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
-                      {GRADE_LABEL[req.gradeLevel] ?? req.gradeLevel}
-                    </span>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      req.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
-                    }`}>
-                      {req.isActive ? "招募中" : "已关闭"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700 line-clamp-2 mb-1">{req.description}</p>
-                  <div className="flex flex-wrap gap-3 text-xs text-gray-400">
-                    {(req.budgetMin || req.budgetMax) && (
-                      <span>
-                        预算：
-                        {req.budgetMin && req.budgetMax
-                          ? `¥${req.budgetMin}–${req.budgetMax}/时`
-                          : req.budgetMin
-                          ? `¥${req.budgetMin}+/时`
-                          : `最高 ¥${req.budgetMax}/时`}
-                      </span>
-                    )}
-                    {req.scheduleNote && <span>{req.scheduleNote}</span>}
-                    <span>{new Date(req.createdAt).toLocaleDateString("zh-CN")}</span>
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium">
+                          {req.subjectName}
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
+                          {GRADE_LABEL[req.gradeLevel] ?? req.gradeLevel}
+                        </span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          req.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
+                        }`}>
+                          {req.isActive ? "招募中" : "已关闭"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 line-clamp-2 mb-1">{req.description}</p>
+                      <div className="flex flex-wrap gap-3 text-xs text-gray-400">
+                        {(req.budgetMin || req.budgetMax) && (
+                          <span>
+                            预算：
+                            {req.budgetMin && req.budgetMax
+                              ? `¥${req.budgetMin}–${req.budgetMax}/时`
+                              : req.budgetMin
+                              ? `¥${req.budgetMin}+/时`
+                              : `最高 ¥${req.budgetMax}/时`}
+                          </span>
+                        )}
+                        {req.scheduleNote && <span>{req.scheduleNote}</span>}
+                        <span>{new Date(req.createdAt).toLocaleDateString("zh-CN")}</span>
+                      </div>
+                    </div>
+                    <ToggleRequirementButton requirementId={req.id} isActive={req.isActive} />
                   </div>
                 </div>
               ))}

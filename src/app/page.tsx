@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import TutorCard from "@/components/TutorCard";
+import HomeSearch from "@/components/HomeSearch";
 import { MOCK_TUTORS, MOCK_TESTIMONIALS, MOCK_SUBJECTS } from "@/lib/mock-data";
 
 export default function HomePage() {
@@ -29,19 +30,7 @@ export default function HomePage() {
             </p>
 
             {/* Search bar */}
-            <div className="flex flex-col sm:flex-row gap-3 max-w-xl">
-              <input
-                type="text"
-                placeholder="搜索学科，如：高等数学、英语口语..."
-                className="flex-1 px-5 py-3.5 rounded-xl text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
-              />
-              <Link
-                href="/tutors"
-                className="px-6 py-3.5 rounded-xl bg-yellow-400 text-gray-900 font-semibold text-sm hover:bg-yellow-300 transition-colors whitespace-nowrap text-center"
-              >
-                立即搜索
-              </Link>
-            </div>
+            <HomeSearch />
 
             {/* Quick stats */}
             <div className="flex flex-wrap gap-6 mt-10 text-sm">
@@ -191,7 +180,7 @@ export default function HomePage() {
               浏览家教
             </Link>
             <Link
-              href="#"
+              href="/register"
               className="px-8 py-3.5 rounded-xl border border-white/40 text-white font-semibold hover:bg-white/10 transition-colors"
             >
               成为家教

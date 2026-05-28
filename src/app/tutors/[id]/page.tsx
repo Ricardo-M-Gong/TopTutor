@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import BookButton from "@/components/BookButton";
 
 export default async function TutorDetailPage({
@@ -46,6 +47,13 @@ export default async function TutorDetailPage({
   return (
     <main className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        {/* Back link */}
+        <Link
+          href="/tutors"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 transition-colors mb-5"
+        >
+          ← 返回教员列表
+        </Link>
         {/* Profile card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-6">
           {/* Header */}

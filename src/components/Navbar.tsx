@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import NavbarUserMenu from "@/components/NavbarUserMenu";
+import MobileMenu from "@/components/MobileMenu";
+import GuestMobileMenu from "@/components/GuestMobileMenu";
 import { Role } from "@/generated/prisma/client";
 
 export default async function Navbar() {
@@ -36,13 +38,18 @@ export default async function Navbar() {
           {/* Actions */}
           <div className="flex items-center gap-3">
             {user ? (
-              <NavbarUserMenu
-                name={user.name ?? "用户"}
-                image={user.image}
-                role={user.role as Role}
-              />
+              <>
+                <MobileMenu role={user.role as Role} />
+                <NavbarUserMenu
+                  name={user.name ?? "用户"}
+                  image={user.image}
+                  role={user.role as Role}
+                />
+              </>
             ) : (
               <>
+                {/* Mobile menu for guests */}
+                <GuestMobileMenu />
                 <Link
                   href="/login"
                   className="hidden sm:inline-flex text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors"
