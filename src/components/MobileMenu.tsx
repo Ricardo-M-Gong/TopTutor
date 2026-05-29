@@ -65,13 +65,20 @@ export default function MobileMenu({ role }: Props) {
             </nav>
 
             {/* Dashboard shortcut */}
-            <div className="px-4 py-4 border-t border-gray-100">
+            <div className="px-4 py-4 border-t border-gray-100 space-y-2">
               <Link
                 href={role === "ADMIN" ? "/admin" : role === "TUTOR" ? "/dashboard/tutor" : "/dashboard/parent"}
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
               >
                 {role === "ADMIN" ? "管理后台" : "我的控制台"}
+              </Link>
+              <Link
+                href="/settings"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                个人设置
               </Link>
             </div>
           </div>
