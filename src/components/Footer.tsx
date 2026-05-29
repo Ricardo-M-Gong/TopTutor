@@ -15,29 +15,29 @@ export default function Footer() {
             <h3 className="text-sm font-semibold text-white mb-4">平台</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/tutors" className="hover:text-white transition-colors">找家教</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">成为家教</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">学科分类</Link></li>
+              <li><Link href="/register" className="hover:text-white transition-colors">成为家教</Link></li>
+              <li><Link href="/#subjects" className="hover:text-white transition-colors">学科分类</Link></li>
+              <li><Link href="/requirements" className="hover:text-white transition-colors">需求大厅</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="text-sm font-semibold text-white mb-4">支持</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="hover:text-white transition-colors">帮助中心</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">联系我们</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">常见问题</Link></li>
+              <li><Link href="/help" className="hover:text-white transition-colors">帮助中心</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">联系我们</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="text-sm font-semibold text-white mb-4">关于</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="hover:text-white transition-colors">关于我们</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">隐私政策</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">服务条款</Link></li>
+              <li><Link href="/about" className="hover:text-white transition-colors">关于我们</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition-colors">隐私政策</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">服务条款</Link></li>
             </ul>
           </div>
         </div>
         <div className="mt-10 pt-8 border-t border-gray-800 text-sm text-center">
-          © 2025 TopTutor. 保留所有权利。
+          © 2026 TopTutor. 保留所有权利。
         </div>
       </div>
     </footer>
