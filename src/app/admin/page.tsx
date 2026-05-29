@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 export default async function AdminPage() {
-  const [userCount, tutorCount, requirementCount, applicationCount, pendingBookings, pendingApply] =
+  const [userCount, tutorCount, requirementCount, applicationCount, pendingBookings, pendingApply, acceptedCount, reviewCount, reviewAgg] =
     await Promise.all([
       prisma.user.count(),
       prisma.tutorProfile.count(),
@@ -10,6 +10,9 @@ export default async function AdminPage() {
       prisma.application.count(),
       prisma.application.count({ where: { type: "PARENT_BOOK", status: "PENDING" } }),
       prisma.application.count({ where: { type: "TUTOR_APPLY", status: "PENDING" } }),
+      prisma.application.count({ where: { status: "ACCEPTED" } }),
+      prisma.review.count(),
+      prisma.review.aggregate({ _avg: { rating: true } }),
     ]);
 
   const recentUsers = await prisma.user.findMany({
@@ -23,6 +26,14 @@ export default async function AdminPage() {
     { label: "教员资料", value: tutorCount, icon: "🎓", href: "/admin/tutors" },
     { label: "发布需求", value: requirementCount, icon: "📋", href: "/admin/requirements" },
     { label: "总申请数", value: applicationCount, icon: "📅", href: "/admin/applications" },
+    { label: "成功撮合", value: acceptedCount, icon: "🤝", href: "/admin/applications" },
+    { label: "累计评价", value: reviewCount, icon: "⭐", href: "/admin/applications" },
+    {
+      label: "平均评分",
+      value: reviewAgg._avg.rating ? reviewAgg._avg.rating.toFixed(1) : "–",
+      icon: "📊",
+      href: "/admin/applications",
+    },
   ];
 
   const ROLE_LABEL: Record<string, string> = {
@@ -34,7 +45,7 @@ export default async function AdminPage() {
       <h1 className="text-2xl font-bold text-gray-900 mb-8">管理概览</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mb-8">
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:border-indigo-200 transition-colors">
             <div className="flex items-center justify-between mb-3">

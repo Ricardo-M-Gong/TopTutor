@@ -6,6 +6,16 @@ import TutorCard from "@/components/TutorCard";
 import Link from "next/link";
 import type { Tutor, Subject } from "@/types";
 
+const GRADE_OPTIONS = [
+  { label: "不限", value: "" },
+  { label: "小学", value: "PRIMARY" },
+  { label: "初中", value: "MIDDLE" },
+  { label: "高中", value: "HIGH" },
+  { label: "大学本科", value: "UNDERGRADUATE" },
+  { label: "研究生", value: "GRADUATE" },
+  { label: "其他", value: "OTHER" },
+];
+
 const PRICE_OPTIONS = [
   { label: "不限", value: "all" },
   { label: "¥50 以下", value: "lt50" },
@@ -41,6 +51,7 @@ interface Props {
   initialRating: string;
   initialAvailable: boolean;
   initialSort: string;
+  initialGrade: string;
 }
 
 export default function TutorsClient({
@@ -55,6 +66,7 @@ export default function TutorsClient({
   initialRating,
   initialAvailable,
   initialSort,
+  initialGrade,
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
@@ -66,17 +78,18 @@ export default function TutorsClient({
   const [rating, setRating] = useState(initialRating);
   const [available, setAvailable] = useState(initialAvailable);
   const [sort, setSort] = useState(initialSort);
+  const [grade, setGrade] = useState(initialGrade);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const buildUrl = useCallback(
     (overrides: Record<string, string | undefined> = {}) => {
       const params = new URLSearchParams();
-      const vals = { q, subject, price, rating, available: available ? "1" : "", sort, page: "1", ...overrides };
+      const vals = { q, subject, price, rating, available: available ? "1" : "", sort, grade, page: "1", ...overrides };
       Object.entries(vals).forEach(([k, v]) => { if (v && v !== "all" && v !== "0" && v !== "") params.set(k, v); });
       const qs = params.toString();
       return qs ? `${pathname}?${qs}` : pathname;
     },
-    [q, subject, price, rating, available, sort, pathname]
+    [q, subject, price, rating, available, sort, grade, pathname]
   );
 
   function applyFilters() {
@@ -85,7 +98,7 @@ export default function TutorsClient({
   }
 
   function resetFilters() {
-    setQ(""); setSubject(""); setPrice("all"); setRating("0"); setAvailable(false); setSort("recommended");
+    setQ(""); setSubject(""); setPrice("all"); setRating("0"); setAvailable(false); setSort("recommended"); setGrade("");
     router.push(pathname);
   }
 
@@ -136,9 +149,27 @@ export default function TutorsClient({
         </div>
       </div>
 
-      {/* Price */}
+      {/* Grade */}
       <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-3">价格区间（元/时）</h3>
+        <h3 className="text-sm font-medium text-gray-700 mb-3">辅导年级</h3>
+        <div className="space-y-2">
+          {GRADE_OPTIONS.map((opt) => (
+            <label key={opt.value} className="flex items-center gap-2 cursor-pointer group">
+              <input
+                type="radio"
+                name="grade"
+                checked={grade === opt.value}
+                onChange={() => setGrade(opt.value)}
+                className="accent-indigo-600"
+              />
+              <span className="text-sm text-gray-600 group-hover:text-gray-900">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Price */}
+      <div>        <h3 className="text-sm font-medium text-gray-700 mb-3">价格区间（元/时）</h3>
         <div className="space-y-2">
           {PRICE_OPTIONS.map((opt) => (
             <label key={opt.value} className="flex items-center gap-2 cursor-pointer group">
@@ -294,7 +325,8 @@ export default function TutorsClient({
           {tutors.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-4xl mb-4">🔍</p>
-              <p className="text-gray-500 mb-4">没有找到符合条件的家教</p>
+              <p className="font-medium text-gray-700 mb-2">没有找到符合条件的家教</p>
+              <p className="text-sm text-gray-400 mb-4">试试调整筛选条件</p>
               <button onClick={resetFilters} className="text-indigo-600 text-sm hover:underline">清除筛选条件</button>
             </div>
           ) : (

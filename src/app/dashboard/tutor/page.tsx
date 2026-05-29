@@ -125,7 +125,17 @@ export default async function TutorDashboardPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">收到的预约</h2>
           {receivedApplications.length === 0 ? (
-            <p className="text-sm text-gray-400">暂无家长向你发起预约</p>
+            <div className="text-center py-10">
+              <p className="text-4xl mb-3">📭</p>
+              <p className="font-medium text-gray-700 mb-1">暂无预约</p>
+              <p className="text-sm text-gray-400 mb-4">家长还没有向你发起预约</p>
+              <a
+                href="/dashboard/tutor"
+                className="inline-flex items-center px-4 py-2 rounded-xl border border-indigo-200 text-indigo-600 text-sm font-medium hover:bg-indigo-50 transition-colors"
+              >
+                完善资料
+              </a>
+            </div>
           ) : (
             <div className="space-y-4">
               {receivedApplications.map((app) => {
@@ -190,13 +200,17 @@ export default async function TutorDashboardPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">我的接单申请</h2>
           {sentApplications.length === 0 ? (
-            <p className="text-sm text-gray-400">
-              你还没有申请过任何需求。前往{" "}
-              <a href="/requirements" className="text-indigo-600 hover:underline">
-                需求大厅
-              </a>{" "}
-              查看招募中的需求。
-            </p>
+            <div className="text-center py-10">
+              <p className="text-4xl mb-3">📋</p>
+              <p className="font-medium text-gray-700 mb-1">还没有申请过需求</p>
+              <p className="text-sm text-gray-400 mb-4">前往需求大厅查看招募中的需求</p>
+              <a
+                href="/requirements"
+                className="inline-flex items-center px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                浏览需求大厅
+              </a>
+            </div>
           ) : (
             <div className="space-y-3">
               {sentApplications.map((app) => {

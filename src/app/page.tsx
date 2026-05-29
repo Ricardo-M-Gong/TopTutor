@@ -2,10 +2,41 @@ import Link from "next/link";
 import Image from "next/image";
 import TutorCard from "@/components/TutorCard";
 import HomeSearch from "@/components/HomeSearch";
-import { MOCK_TUTORS, MOCK_TESTIMONIALS, MOCK_SUBJECTS } from "@/lib/mock-data";
+import { MOCK_TESTIMONIALS, MOCK_SUBJECTS } from "@/lib/mock-data";
+import { prisma } from "@/lib/prisma";
+import type { Tutor } from "@/types";
 
-export default function HomePage() {
-  const featuredTutors = MOCK_TUTORS.slice(0, 3);
+export default async function HomePage() {
+  const [tutorCount, subjectRows, acceptedCount, topProfiles] = await Promise.all([
+    prisma.tutorProfile.count(),
+    prisma.tutorSubject.findMany({ distinct: ["subjectName"], select: { subjectName: true } }),
+    prisma.application.count({ where: { status: "ACCEPTED" } }),
+    prisma.tutorProfile.findMany({
+      orderBy: { rating: "desc" },
+      take: 3,
+      include: {
+        user: { select: { id: true, name: true, avatarUrl: true } },
+        subjects: { select: { subjectName: true } },
+        tags: { select: { tag: true } },
+      },
+    }),
+  ]);
+
+  const featuredTutors: Tutor[] = topProfiles.map((p) => ({
+    id: p.id,
+    name: p.user.name,
+    avatar: p.user.avatarUrl ?? "",
+    university: p.university,
+    major: p.major,
+    grade: p.grade,
+    hourlyRate: p.hourlyRate,
+    rating: p.rating,
+    reviewCount: p.reviewCount,
+    bio: p.bio,
+    available: p.available,
+    subjects: p.subjects.map((s) => s.subjectName),
+    tags: p.tags.map((t) => t.tag),
+  }));
 
   return (
     <>
@@ -35,9 +66,9 @@ export default function HomePage() {
             {/* Quick stats */}
             <div className="flex flex-wrap gap-6 mt-10 text-sm">
               {[
-                { label: "认证家教", value: "500+" },
-                { label: "覆盖学科", value: "30+" },
-                { label: "好评率", value: "98%" },
+                { label: "认证家教", value: tutorCount > 0 ? `${tutorCount}+` : "0" },
+                { label: "覆盖学科", value: subjectRows.length > 0 ? `${subjectRows.length}+` : "0" },
+                { label: "成功撮合", value: acceptedCount > 0 ? `${acceptedCount}+` : "0" },
               ].map((stat) => (
                 <div key={stat.label} className="flex items-center gap-2">
                   <span className="text-2xl font-bold text-yellow-300">{stat.value}</span>

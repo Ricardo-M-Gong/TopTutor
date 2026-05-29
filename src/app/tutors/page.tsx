@@ -86,6 +86,7 @@ export default async function TutorsPage({
       initialRating={String(minRating)}
       initialAvailable={availableOnly}
       initialSort={sort}
+      initialGrade=""
     />
   );
 }

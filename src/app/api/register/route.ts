@@ -6,11 +6,12 @@ import { Role } from "@/generated/prisma/client";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password, role } = body as {
+    const { name, email, password, role, phone } = body as {
       name: string;
       email: string;
       password: string;
       role: string;
+      phone?: string;
     };
 
     if (!name || !email || !password || !role) {
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
         email,
         passwordHash,
         role: role as Role,
+        phone: phone?.trim() || null,
       },
       select: { id: true, name: true, email: true, role: true },
     });

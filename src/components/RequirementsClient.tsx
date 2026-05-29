@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import ApplyButton from "@/components/ApplyButton";
 
 const GRADE_LABEL: Record<string, string> = {
@@ -157,7 +158,8 @@ export default function RequirementsClient({
         {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
             <p className="text-4xl mb-4">🔍</p>
-            <p className="text-gray-400 mb-3">没有找到符合条件的需求</p>
+            <p className="font-medium text-gray-700 mb-2">没有找到符合条件的需求</p>
+            <p className="text-sm text-gray-400 mb-4">试试调整筛选条件</p>
             <button
               onClick={() => { setQ(""); setGradeFilter(""); }}
               className="text-sm text-indigo-600 hover:underline"
@@ -173,7 +175,7 @@ export default function RequirementsClient({
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
+                  <Link href={`/requirements/${req.id}`} className="flex-1 min-w-0 hover:opacity-80 transition-opacity">
                     {/* Tags row */}
                     <div className="flex items-center gap-2 flex-wrap mb-3">
                       <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium">
@@ -194,7 +196,7 @@ export default function RequirementsClient({
                     </div>
 
                     {/* Description */}
-                    <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                    <p className="text-gray-700 text-sm leading-relaxed mb-3 line-clamp-2">
                       {req.description}
                     </p>
 
@@ -203,7 +205,7 @@ export default function RequirementsClient({
                       {req.scheduleNote && <span>上课安排：{req.scheduleNote}</span>}
                       <span>发布于 {new Date(req.createdAt).toLocaleDateString("zh-CN")}</span>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Action */}
                   <div className="shrink-0">

@@ -87,10 +87,15 @@ export default async function ParentDashboardPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">我发布的需求</h2>
           {requirements.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 text-sm mb-4">你还没有发布任何家教需求</p>
-              <Link href="/dashboard/parent/post" className="inline-flex items-center px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors">
-                立即发布需求
+            <div className="text-center py-10">
+              <p className="text-4xl mb-3">📝</p>
+              <p className="font-medium text-gray-700 mb-1">还没有发布需求</p>
+              <p className="text-sm text-gray-400 mb-4">发布需求，等待教员主动联系</p>
+              <Link
+                href="/dashboard/parent/post"
+                className="inline-flex items-center px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                发布需求
               </Link>
             </div>
           ) : (
@@ -128,7 +133,11 @@ export default async function ParentDashboardPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-1">教员接单申请</h2>
           <p className="text-xs text-gray-400 mb-4">教员主动申请你发布的需求</p>
           {receivedApplications.length === 0 ? (
-            <p className="text-sm text-gray-400">暂无教员申请，发布需求后等待教员联系你</p>
+            <div className="text-center py-10">
+              <p className="text-4xl mb-3">📭</p>
+              <p className="font-medium text-gray-700 mb-1">暂无教员申请</p>
+              <p className="text-sm text-gray-400">发布需求后教员会主动申请</p>
+            </div>
           ) : (
             <div className="space-y-4">
               {receivedApplications.map((app) => {
@@ -186,11 +195,17 @@ export default async function ParentDashboardPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-1">我发起的预约</h2>
           <p className="text-xs text-gray-400 mb-4">你主动向教员发起的预约请求</p>
           {sentBookings.length === 0 ? (
-            <p className="text-sm text-gray-400">
-              你还没有预约过任何教员。前往{" "}
-              <Link href="/tutors" className="text-indigo-600 hover:underline">找家教</Link>{" "}
-              浏览教员。
-            </p>
+            <div className="text-center py-10">
+              <p className="text-4xl mb-3">🔍</p>
+              <p className="font-medium text-gray-700 mb-1">还没有预约过教员</p>
+              <p className="text-sm text-gray-400 mb-4">浏览教员列表找到合适的老师</p>
+              <Link
+                href="/tutors"
+                className="inline-flex items-center px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                找家教
+              </Link>
+            </div>
           ) : (
             <div className="space-y-3">
               {sentBookings.map((app) => {
