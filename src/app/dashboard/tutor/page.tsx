@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import TutorProfileForm from "@/components/TutorProfileForm";
 import ApplicationActions from "@/components/ApplicationActions";
+import AvailabilityToggle from "@/components/AvailabilityToggle";
 
 const STATUS_LABEL: Record<string, { text: string; cls: string }> = {
   PENDING:  { text: "待处理", cls: "bg-amber-50 text-amber-700" },
@@ -39,7 +40,7 @@ export default async function TutorDashboardPage() {
         where: { receiverUserId: session.user.id },
         orderBy: { createdAt: "desc" },
         include: {
-          sender: { select: { name: true } },
+          sender: { select: { name: true, phone: true } },
           requirement: {
             select: { subjectName: true, gradeLevel: true, description: true },
           },
@@ -59,7 +60,7 @@ export default async function TutorDashboardPage() {
           requirement: {
             select: { subjectName: true, gradeLevel: true, description: true },
           },
-          receiver: { select: { name: true } },
+          receiver: { select: { name: true, phone: true } },
         },
       })
     : [];
@@ -73,12 +74,44 @@ export default async function TutorDashboardPage() {
     <main className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">教员控制台</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            欢迎回来，{session.user.name}。
-          </p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">教员控制台</h1>
+            <p className="mt-1 text-sm text-gray-500">欢迎回来，{session.user.name}。</p>
+          </div>
+          {profile && <AvailabilityToggle available={profile.available} />}
         </div>
+
+        {/* Stats */}
+        {profile && (
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              {
+                label: "待处理预约",
+                value: receivedApplications.filter((a) => a.status === "PENDING").length,
+                color: "text-amber-600",
+                bg: "bg-amber-50",
+              },
+              {
+                label: "已接受预约",
+                value: receivedApplications.filter((a) => a.status === "ACCEPTED").length,
+                color: "text-green-600",
+                bg: "bg-green-50",
+              },
+              {
+                label: "我的申请",
+                value: sentApplications.length,
+                color: "text-indigo-600",
+                bg: "bg-indigo-50",
+              },
+            ].map((stat) => (
+              <div key={stat.label} className={`${stat.bg} rounded-2xl p-4 text-center`}>
+                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Profile form */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
@@ -127,6 +160,17 @@ export default async function TutorDashboardPage() {
                         {app.message && (
                           <p className="text-sm text-gray-600 mt-1">{app.message}</p>
                         )}
+                        {/* Contact info after acceptance */}
+                        {app.status === "ACCEPTED" && (
+                          <div className="mt-2 p-3 bg-green-50 rounded-xl border border-green-100 text-xs">
+                            <p className="font-medium text-green-800 mb-1">🎉 已接受！请与对方联系</p>
+                            {app.sender.phone ? (
+                              <p className="text-green-700">手机号：<span className="font-mono font-semibold">{app.sender.phone}</span></p>
+                            ) : (
+                              <p className="text-gray-500">对方暂未填写联系方式</p>
+                            )}
+                          </div>
+                        )}
                         <p className="text-xs text-gray-400 mt-1">
                           {new Date(app.createdAt).toLocaleDateString("zh-CN")}
                         </p>
@@ -172,6 +216,17 @@ export default async function TutorDashboardPage() {
                     </div>
                     {app.message && (
                       <p className="text-sm text-gray-600">{app.message}</p>
+                    )}
+                    {/* Contact info after acceptance */}
+                    {app.status === "ACCEPTED" && (
+                      <div className="mt-2 p-3 bg-green-50 rounded-xl border border-green-100 text-xs">
+                        <p className="font-medium text-green-800 mb-1">🎉 家长已接受！请联系对方</p>
+                        {app.receiver.phone ? (
+                          <p className="text-green-700">手机号：<span className="font-mono font-semibold">{app.receiver.phone}</span></p>
+                        ) : (
+                          <p className="text-gray-500">对方暂未填写联系方式</p>
+                        )}
+                      </div>
                     )}
                     <p className="text-xs text-gray-400 mt-1">
                       发给：{app.receiver.name} ·{" "}

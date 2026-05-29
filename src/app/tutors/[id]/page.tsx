@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import BookButton from "@/components/BookButton";
-import ReviewForm from "@/components/ReviewForm";
 
 export default async function TutorDetailPage({
   params,
@@ -14,24 +13,29 @@ export default async function TutorDetailPage({
   const { id } = await params;
   const session = await auth();
 
-  const profile = await prisma.tutorProfile.findUnique({
-    where: { id },
-    include: {
-      user: { select: { id: true, name: true, avatarUrl: true } },
-      subjects: { select: { subjectName: true } },
-      tags: { select: { tag: true } },
-      reviews: {
-        orderBy: { createdAt: "desc" },
-        include: { author: { select: { name: true, avatarUrl: true } } },
+  const [profile, reviews] = await Promise.all([
+    prisma.tutorProfile.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true, name: true, avatarUrl: true } },
+        subjects: { select: { subjectName: true } },
+        tags: { select: { tag: true } },
       },
-    },
-  });
+    }),
+    prisma.review.findMany({
+      where: { tutorProfileId: id },
+      orderBy: { createdAt: "desc" },
+      include: { author: { select: { name: true } } },
+    }),
+  ]);
 
   if (!profile) notFound();
 
-  const isParent = session?.user?.role === "PARENT" || session?.user?.role === "STUDENT";
+  const isParent =
+    session?.user?.role === "PARENT" || session?.user?.role === "STUDENT";
   const isSelf = session?.user?.id === profile.user.id;
 
+  // Check if parent already has a pending booking for this tutor
   let alreadyBooked = false;
   if (isParent && session?.user?.id) {
     const existing = await prisma.application.findFirst({
@@ -45,11 +49,6 @@ export default async function TutorDetailPage({
     alreadyBooked = !!existing;
   }
 
-  // Check if current user already reviewed
-  const myReview = session?.user?.id
-    ? profile.reviews.find((r) => r.authorId === session.user.id)
-    : null;
-
   const avatarSrc = profile.user.avatarUrl || "";
 
   return (
@@ -62,7 +61,6 @@ export default async function TutorDetailPage({
         >
           ← 返回教员列表
         </Link>
-
         {/* Profile card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-6">
           {/* Header */}
@@ -77,7 +75,7 @@ export default async function TutorDetailPage({
                   className="rounded-full bg-indigo-50"
                 />
               ) : (
-                <div className="w-[72px] h-[72px] rounded-full bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
+                <div className="w-18 h-18 w-[72px] h-[72px] rounded-full bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
                   {profile.user.name.charAt(0)}
                 </div>
               )}
@@ -166,58 +164,35 @@ export default async function TutorDetailPage({
         </div>
 
         {/* Reviews */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-5">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
             学生评价
-            {profile.reviewCount > 0 && (
-              <span className="ml-2 text-sm font-normal text-gray-400">({profile.reviewCount} 条)</span>
+            {reviews.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-gray-400">({reviews.length} 条)</span>
             )}
           </h2>
-
-          {profile.reviews.length === 0 ? (
+          {reviews.length === 0 ? (
             <p className="text-sm text-gray-400">暂无评价</p>
           ) : (
-            <div className="space-y-4 mb-6">
-              {profile.reviews.map((r) => (
-                <div key={r.id} className="border border-gray-100 rounded-xl p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-sm font-semibold shrink-0">
-                      {r.author.name.charAt(0)}
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div key={review.id} className="border-b border-gray-50 last:border-0 pb-4 last:pb-0">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="flex">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <svg key={i} className={`w-4 h-4 ${i < review.rating ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{r.author.name}</p>
-                      <p className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString("zh-CN")}</p>
-                    </div>
-                    <div className="flex text-amber-400 text-sm shrink-0">
-                      {"★".repeat(r.rating)}
-                      <span className="text-gray-200">{"★".repeat(5 - r.rating)}</span>
-                    </div>
+                    <span className="text-sm font-medium text-gray-700">{review.author.name}</span>
+                    <span className="text-xs text-gray-400">{new Date(review.createdAt).toLocaleDateString("zh-CN")}</span>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed">{r.content}</p>
+                  {review.content && (
+                    <p className="text-sm text-gray-600 leading-relaxed">{review.content}</p>
+                  )}
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Write review — only for parents/students who are not the tutor */}
-          {!isSelf && isParent && (
-            <div className="border-t border-gray-100 pt-5">
-              <h3 className="text-sm font-medium text-gray-700 mb-4">
-                {myReview ? "修改你的评价" : "写评价"}
-              </h3>
-              <ReviewForm
-                tutorProfileId={id}
-                existingRating={myReview?.rating}
-                existingContent={myReview?.content}
-              />
-            </div>
-          )}
-
-          {!session && (
-            <div className="border-t border-gray-100 pt-5">
-              <p className="text-sm text-gray-400">
-                <a href="/login" className="text-indigo-600 hover:underline">登录</a> 后可以写评价
-              </p>
             </div>
           )}
         </div>

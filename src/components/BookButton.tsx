@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 interface BookButtonProps {
   tutorProfileId: string;
@@ -10,6 +11,7 @@ interface BookButtonProps {
 
 export default function BookButton({ tutorProfileId, tutorName }: BookButtonProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,9 +35,11 @@ export default function BookButton({ tutorProfileId, tutorName }: BookButtonProp
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "预约失败，请重试");
+        toast(data.error ?? "预约失败，请重试", "error");
       } else {
         setDone(true);
         setOpen(false);
+        toast(`已成功向 ${tutorName} 发送预约请求`);
         router.refresh();
       }
     } catch {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 interface ApplicationActionsProps {
   applicationId: string;
@@ -9,6 +10,7 @@ interface ApplicationActionsProps {
 
 export default function ApplicationActions({ applicationId }: ApplicationActionsProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [loading, setLoading] = useState<"ACCEPTED" | "REJECTED" | null>(null);
   const [done, setDone] = useState<"ACCEPTED" | "REJECTED" | null>(null);
   const [error, setError] = useState("");
@@ -25,8 +27,10 @@ export default function ApplicationActions({ applicationId }: ApplicationActions
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "操作失败");
+        toast(data.error ?? "操作失败", "error");
       } else {
         setDone(status);
+        toast(status === "ACCEPTED" ? "已接受申请" : "已拒绝申请");
         router.refresh();
       }
     } catch {

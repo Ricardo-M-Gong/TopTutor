@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 const SUBJECT_OPTIONS = [
   "数学", "英语", "物理", "化学", "生物", "语文", "历史", "地理",
@@ -24,6 +25,7 @@ interface InitialData {
 
 export default function TutorProfileForm({ initialData }: { initialData: InitialData | null }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [university, setUniversity] = useState(initialData?.university ?? "");
   const [major, setMajor] = useState(initialData?.major ?? "");
   const [grade, setGrade] = useState(initialData?.grade ?? "");
@@ -33,7 +35,6 @@ export default function TutorProfileForm({ initialData }: { initialData: Initial
   );
   const [bio, setBio] = useState(initialData?.bio ?? "");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   function toggleSubject(s: string) {
@@ -43,7 +44,6 @@ export default function TutorProfileForm({ initialData }: { initialData: Initial
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
     if (!university.trim()) return setError("请填写毕业/就读高校");
     if (!major.trim()) return setError("请填写专业");
@@ -64,7 +64,7 @@ export default function TutorProfileForm({ initialData }: { initialData: Initial
       if (!res.ok) {
         setError(data.error ?? "保存失败，请重试");
       } else {
-        setSuccess(data.message ?? "保存成功");
+        toast(data.message ?? "资料保存成功");
         router.refresh();
       }
     } catch {
@@ -185,11 +185,6 @@ export default function TutorProfileForm({ initialData }: { initialData: Initial
       {error && (
         <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600">
           {error}
-        </div>
-      )}
-      {success && (
-        <div className="px-4 py-3 rounded-xl bg-green-50 border border-green-100 text-sm text-green-600">
-          {success}
         </div>
       )}
 

@@ -8,7 +8,10 @@ interface TutorCardProps {
 
 export default function TutorCard({ tutor }: TutorCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col gap-4">
+    <Link
+      href={`/tutors/${tutor.id}`}
+      className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all p-5 flex flex-col gap-4"
+    >
       {/* Header */}
       <div className="flex items-start gap-4">
         <div className="relative shrink-0">
@@ -25,7 +28,7 @@ export default function TutorCard({ tutor }: TutorCardProps) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-semibold text-gray-900 truncate">{tutor.name}</h3>
+            <h3 className="font-semibold text-gray-900 truncate group-hover:text-indigo-700 transition-colors">{tutor.name}</h3>
             <span className="shrink-0 text-sm font-semibold text-indigo-600">
               ¥{tutor.hourlyRate}<span className="text-xs font-normal text-gray-400">/时</span>
             </span>
@@ -77,13 +80,13 @@ export default function TutorCard({ tutor }: TutorCardProps) {
         ))}
       </div>
 
-      {/* Action */}
-      <Link
-        href={`/tutors/${tutor.id}`}
-        className="mt-auto block text-center py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
-      >
-        查看详情 / 预约
-      </Link>
-    </div>
+      {/* CTA row */}
+      <div className="mt-auto pt-1 flex items-center justify-between text-sm">
+        <span className={`text-xs font-medium ${tutor.available ? "text-green-600" : "text-gray-400"}`}>
+          {tutor.available ? "● 可预约" : "● 暂不接单"}
+        </span>
+        <span className="text-indigo-600 font-medium group-hover:underline">查看详情 →</span>
+      </div>
+    </Link>
   );
 }

@@ -5,49 +5,78 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "请先登录" }, { status: 401 });
   }
 
   const body = await req.json();
-  const { tutorProfileId, rating, content } = body;
+  const { applicationId, tutorProfileId, rating, content } = body as {
+    applicationId: string;
+    tutorProfileId: string;
+    rating: number;
+    content?: string;
+  };
 
-  if (!tutorProfileId || !rating || !content?.trim()) {
-    return NextResponse.json({ error: "参数不完整" }, { status: 400 });
-  }
-  if (rating < 1 || rating > 5) {
-    return NextResponse.json({ error: "评分须在 1–5 之间" }, { status: 400 });
-  }
-
-  // Cannot review yourself
-  const profile = await prisma.tutorProfile.findUnique({
-    where: { id: tutorProfileId },
-    select: { userId: true },
-  });
-  if (!profile) return NextResponse.json({ error: "教员不存在" }, { status: 404 });
-  if (profile.userId === session.user.id) {
-    return NextResponse.json({ error: "不能评价自己" }, { status: 400 });
+  if (!applicationId || !tutorProfileId || !rating) {
+    return NextResponse.json({ error: "缺少必填字段" }, { status: 400 });
   }
 
-  // Upsert review
-  const review = await prisma.review.upsert({
-    where: { tutorProfileId_authorId: { tutorProfileId, authorId: session.user.id } },
-    create: { tutorProfileId, authorId: session.user.id, rating, content: content.trim() },
-    update: { rating, content: content.trim() },
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return NextResponse.json({ error: "评分必须为 1–5 分" }, { status: 400 });
+  }
+
+  const application = await prisma.application.findUnique({
+    where: { id: applicationId },
+    include: { review: { select: { id: true } } },
   });
 
-  // Recalculate tutor rating
-  const agg = await prisma.review.aggregate({
-    where: { tutorProfileId },
-    _avg: { rating: true },
-    _count: { rating: true },
-  });
-  await prisma.tutorProfile.update({
-    where: { id: tutorProfileId },
-    data: {
-      rating: agg._avg.rating ?? 0,
-      reviewCount: agg._count.rating,
-    },
+  if (!application) {
+    return NextResponse.json({ error: "申请不存在" }, { status: 404 });
+  }
+  if (application.status !== "ACCEPTED") {
+    return NextResponse.json({ error: "只能对已接受的申请评价" }, { status: 400 });
+  }
+
+  // 家长才能评价：PARENT_BOOK 中家长是 sender；TUTOR_APPLY 中家长是 receiver
+  const isParentReviewer =
+    (application.type === "PARENT_BOOK" && application.senderUserId === session.user.id) ||
+    (application.type === "TUTOR_APPLY" && application.receiverUserId === session.user.id);
+
+  if (!isParentReviewer) {
+    return NextResponse.json({ error: "无权评价" }, { status: 403 });
+  }
+  if (application.review) {
+    return NextResponse.json({ error: "已经评价过了" }, { status: 409 });
+  }
+  if (application.tutorProfileId !== tutorProfileId) {
+    return NextResponse.json({ error: "教员信息不匹配" }, { status: 400 });
+  }
+
+  // 创建评价并更新教员平均评分（事务）
+  await prisma.$transaction(async (tx) => {
+    await tx.review.create({
+      data: {
+        applicationId,
+        tutorProfileId,
+        authorId: session.user!.id!,
+        rating,
+        content: content?.trim() ?? "",
+      },
+    });
+
+    const all = await tx.review.findMany({
+      where: { tutorProfileId },
+      select: { rating: true },
+    });
+    const avg = all.reduce((s, r) => s + r.rating, 0) / all.length;
+
+    await tx.tutorProfile.update({
+      where: { id: tutorProfileId },
+      data: {
+        rating: Math.round(avg * 10) / 10,
+        reviewCount: all.length,
+      },
+    });
   });
 
-  return NextResponse.json(review);
+  return NextResponse.json({ ok: true });
 }

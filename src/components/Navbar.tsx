@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import NavbarUserMenu from "@/components/NavbarUserMenu";
 import MobileMenu from "@/components/MobileMenu";
 import GuestMobileMenu from "@/components/GuestMobileMenu";
+import NavLinks from "@/components/NavLinks";
 import { Role } from "@/generated/prisma/client";
 
 export default async function Navbar() {
@@ -20,20 +21,7 @@ export default async function Navbar() {
           </Link>
 
           {/* Nav links */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link href="/tutors" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
-              找家教
-            </Link>
-            <Link href="/requirements" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
-              需求大厅
-            </Link>
-            <Link href="/#subjects" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
-              学科分类
-            </Link>
-            <Link href="/#how-it-works" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
-              如何使用
-            </Link>
-          </nav>
+          <NavLinks />
 
           {/* Actions */}
           <div className="flex items-center gap-3">

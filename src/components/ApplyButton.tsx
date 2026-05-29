@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 interface ApplyButtonProps {
   tutorProfileId: string;
@@ -10,6 +11,7 @@ interface ApplyButtonProps {
 
 export default function ApplyButton({ tutorProfileId, requirementId }: ApplyButtonProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,9 +36,11 @@ export default function ApplyButton({ tutorProfileId, requirementId }: ApplyButt
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "提交失败，请重试");
+        toast(data.error ?? "提交失败，请重试", "error");
       } else {
         setDone(true);
         setOpen(false);
+        toast("申请已发送，等待家长回复");
         router.refresh();
       }
     } catch {
