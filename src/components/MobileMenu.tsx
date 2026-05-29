@@ -67,11 +67,11 @@ export default function MobileMenu({ role }: Props) {
             {/* Dashboard shortcut */}
             <div className="px-4 py-4 border-t border-gray-100">
               <Link
-                href={role === "TUTOR" ? "/dashboard/tutor" : "/dashboard/parent"}
+                href={role === "ADMIN" ? "/admin" : role === "TUTOR" ? "/dashboard/tutor" : "/dashboard/parent"}
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
               >
-                我的控制台
+                {role === "ADMIN" ? "管理后台" : "我的控制台"}
               </Link>
             </div>
           </div>

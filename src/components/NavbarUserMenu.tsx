@@ -16,7 +16,14 @@ export default function NavbarUserMenu({ name, image, role }: NavbarUserMenuProp
   return (
     <div className="flex items-center gap-3">
       {/* Role-based CTA */}
-      {role === "TUTOR" ? (
+      {role === "ADMIN" ? (
+        <Link
+          href="/admin"
+          className="hidden sm:inline-flex text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+        >
+          管理后台
+        </Link>
+      ) : role === "TUTOR" ? (
         <Link
           href="/dashboard/tutor"
           className="hidden sm:inline-flex text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
