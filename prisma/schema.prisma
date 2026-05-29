@@ -49,6 +49,7 @@ model User {
   image         String?
   role          Role          @default(STUDENT)
   phone         String?
+  bio           String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -56,10 +57,10 @@ model User {
   sessions     Session[]
   tutorProfile TutorProfile?
   requirements Requirement[]
-  // Applications sent by this user (as tutor or parent)
   sentApplications     Application[] @relation("ApplicationSender")
-  // Applications received by this user (as the other party)
   receivedApplications Application[] @relation("ApplicationReceiver")
+  reviewsGiven    Review[]      @relation("ReviewAuthor")
+  notifications   Notification[]
 }
 
 model Account {
@@ -116,6 +117,7 @@ model TutorProfile {
   subjects TutorSubject[]
   tags     TutorTag[]
   applications Application[]
+  reviews  Review[]
 }
 
 model TutorSubject {
@@ -193,4 +195,36 @@ model Application {
   @@index([receiverUserId])
   @@index([tutorProfileId])
   @@index([requirementId])
+}
+
+// ── Review (教员评价) ──────────────────────────────────────────────────────
+model Review {
+  id             String       @id @default(cuid())
+  tutorProfileId String
+  authorId       String
+  rating         Int          // 1–5
+  content        String
+  createdAt      DateTime     @default(now())
+
+  tutorProfile TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
+  author       User         @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorProfileId, authorId])
+  @@index([tutorProfileId])
+}
+
+// ── Notification (站内通知) ────────────────────────────────────────────────
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // e.g. "APPLICATION_ACCEPTED", "APPLICATION_REJECTED", "NEW_BOOKING", "NEW_APPLY"
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

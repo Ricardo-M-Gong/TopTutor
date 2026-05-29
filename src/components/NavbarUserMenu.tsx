@@ -3,6 +3,7 @@
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Role } from "@/generated/prisma/client";
+import NotificationBell from "@/components/NotificationBell";
 
 interface NavbarUserMenuProps {
   name: string;
@@ -39,6 +40,9 @@ export default function NavbarUserMenu({ name, image, role }: NavbarUserMenuProp
         </Link>
       )}
 
+      {/* Notification bell */}
+      <NotificationBell />
+
       {/* Avatar + name */}
       <div className="flex items-center gap-2">
         {image ? (
@@ -53,6 +57,12 @@ export default function NavbarUserMenu({ name, image, role }: NavbarUserMenuProp
       </div>
 
       {/* Sign out */}
+      <Link
+        href="/settings"
+        className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        设置
+      </Link>
       <button
         onClick={() => signOut({ callbackUrl: "/" })}
         className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
