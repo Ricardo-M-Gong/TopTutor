@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendPasswordResetEmail } from "@/lib/mail";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -22,13 +23,11 @@ export async function POST(req: NextRequest) {
       data: { email, token, expires },
     });
 
-    console.log(
-      `[重置密码链接] http://localhost:3000/reset-password?token=${token}`
-    );
+    await sendPasswordResetEmail(email, token);
   }
 
   // Always return the same message to prevent user enumeration
   return NextResponse.json({
-    message: "如果该邮箱已注册，重置链接已发送（请查看终端控制台）",
+    message: "如果该邮箱已注册，重置链接已发送，请查收邮件",
   });
 }
