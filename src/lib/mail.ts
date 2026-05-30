@@ -1,18 +1,12 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendPasswordResetEmail(to: string, token: string) {
   const resetUrl = `${process.env.AUTH_URL ?? "http://localhost:3000"}/reset-password?token=${token}`;
 
-  await transporter.sendMail({
-    from: `"TopTutor" <${process.env.SMTP_USER}>`,
+  await resend.emails.send({
+    from: "TopTutor <onboarding@resend.dev>",
     to,
     subject: "重置你的 TopTutor 密码",
     html: `
