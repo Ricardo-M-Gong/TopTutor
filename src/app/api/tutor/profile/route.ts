@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { validateRegions } from "@/lib/regions";
 
 interface ProfileBody {
   university: string;
   major: string;
   grade: string;
   subjects: string[];
+  regions: string[];
   hourlyRate: number;
   bio: string;
 }
@@ -25,6 +27,8 @@ function validate(body: unknown): { data: ProfileBody } | { error: string } {
     return { error: "请至少选择一个擅长科目" };
   if (b.subjects.some((s) => typeof s !== "string" || !s.trim()))
     return { error: "科目名称无效" };
+  if (!validateRegions(b.regions))
+    return { error: "请至少选择一个有效的服务区域" };
   const rate = Number(b.hourlyRate);
   if (!Number.isFinite(rate) || rate <= 0)
     return { error: "期望时薪必须为正数" };
@@ -37,6 +41,7 @@ function validate(body: unknown): { data: ProfileBody } | { error: string } {
       major: (b.major as string).trim(),
       grade: (b.grade as string).trim(),
       subjects: (b.subjects as string[]).map((s) => s.trim()),
+      regions: (b.regions as string[]).map((r) => r.trim()),
       hourlyRate: rate,
       bio: (b.bio as string).trim(),
     },
@@ -49,7 +54,7 @@ export async function GET() {
 
   const profile = await prisma.tutorProfile.findUnique({
     where: { userId: session.user.id },
-    include: { subjects: true, tags: true },
+    include: { subjects: true, tags: true, regions: true },
   });
   return NextResponse.json({ profile });
 }
@@ -63,7 +68,7 @@ export async function POST(req: NextRequest) {
   const result = validate(body);
   if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
 
-  const { university, major, grade, subjects, hourlyRate, bio } = result.data;
+  const { university, major, grade, subjects, regions, hourlyRate, bio } = result.data;
 
   const existing = await prisma.tutorProfile.findUnique({ where: { userId: session.user.id } });
 
@@ -76,6 +81,10 @@ export async function POST(req: NextRequest) {
     await prisma.tutorSubject.createMany({
       data: subjects.map((s) => ({ tutorProfileId: existing.id, subjectName: s })),
     });
+    await prisma.tutorRegion.deleteMany({ where: { tutorProfileId: existing.id } });
+    await prisma.tutorRegion.createMany({
+      data: regions.map((r) => ({ tutorProfileId: existing.id, regionName: r })),
+    });
     return NextResponse.json({ message: "资料已更新" });
   }
 
@@ -84,6 +93,9 @@ export async function POST(req: NextRequest) {
   });
   await prisma.tutorSubject.createMany({
     data: subjects.map((s) => ({ tutorProfileId: profile.id, subjectName: s })),
+  });
+  await prisma.tutorRegion.createMany({
+    data: regions.map((r) => ({ tutorProfileId: profile.id, regionName: r })),
   });
   return NextResponse.json({ message: "资料已创建" }, { status: 201 });
 }

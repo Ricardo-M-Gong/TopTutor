@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { GradeLevel } from "@/generated/prisma/client";
+import { validateRegions } from "@/lib/regions";
 
 const VALID_GRADES = Object.values(GradeLevel);
 
 interface ReqBody {
   subjectName: string;
   gradeLevel: GradeLevel;
+  regions: string[];
   budgetMin?: number;
   budgetMax?: number;
   scheduleNote?: string;
@@ -22,6 +24,8 @@ function validate(body: unknown): { data: ReqBody } | { error: string } {
     return { error: "请填写辅导科目" };
   if (!b.gradeLevel || !VALID_GRADES.includes(b.gradeLevel as GradeLevel))
     return { error: "请选择有效的学员年级" };
+  if (!validateRegions(b.regions))
+    return { error: "请至少选择一个有效的服务区域" };
 
   const minRaw = b.budgetMin;
   const maxRaw = b.budgetMax;
@@ -42,6 +46,7 @@ function validate(body: unknown): { data: ReqBody } | { error: string } {
     data: {
       subjectName: (b.subjectName as string).trim(),
       gradeLevel: b.gradeLevel as GradeLevel,
+      regions: (b.regions as string[]).map((r) => r.trim()),
       budgetMin: hasMin ? Number(minRaw) : undefined,
       budgetMax: hasMax ? Number(maxRaw) : undefined,
       scheduleNote:
@@ -63,10 +68,20 @@ export async function POST(req: NextRequest) {
   const result = validate(body);
   if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
 
-  const { subjectName, gradeLevel, budgetMin, budgetMax, scheduleNote, description } = result.data;
+  const { subjectName, gradeLevel, regions, budgetMin, budgetMax, scheduleNote, description } =
+    result.data;
 
   const requirement = await prisma.requirement.create({
-    data: { userId: session.user.id, subjectName, gradeLevel, budgetMin, budgetMax, scheduleNote, description },
+    data: {
+      userId: session.user.id,
+      subjectName,
+      gradeLevel,
+      budgetMin,
+      budgetMax,
+      scheduleNote,
+      description,
+      regions: { create: regions.map((regionName) => ({ regionName })) },
+    },
   });
 
   return NextResponse.json({ message: "需求已发布", id: requirement.id }, { status: 201 });

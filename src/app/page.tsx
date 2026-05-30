@@ -2,14 +2,16 @@ import Link from "next/link";
 import Image from "next/image";
 import TutorCard from "@/components/TutorCard";
 import HomeSearch from "@/components/HomeSearch";
-import { MOCK_TESTIMONIALS, MOCK_SUBJECTS } from "@/lib/mock-data";
+import { getHomeSubjects, getHomeTestimonials } from "@/lib/home-data";
 import { prisma } from "@/lib/prisma";
+import { mapRegions } from "@/lib/regions";
 import type { Tutor } from "@/types";
 
 export default async function HomePage() {
-  const [tutorCount, subjectRows, acceptedCount, topProfiles] = await Promise.all([
+  const [tutorCount, subjectRows, servedStudentCount, acceptedCount, topProfiles, subjects, testimonials] = await Promise.all([
     prisma.tutorProfile.count(),
     prisma.tutorSubject.findMany({ distinct: ["subjectName"], select: { subjectName: true } }),
+    prisma.user.count({ where: { role: { in: ["PARENT", "STUDENT"] } } }),
     prisma.application.count({ where: { status: "ACCEPTED" } }),
     prisma.tutorProfile.findMany({
       orderBy: { rating: "desc" },
@@ -18,8 +20,11 @@ export default async function HomePage() {
         user: { select: { id: true, name: true, avatarUrl: true } },
         subjects: { select: { subjectName: true } },
         tags: { select: { tag: true } },
+        regions: { select: { regionName: true } },
       },
     }),
+    getHomeSubjects(),
+    getHomeTestimonials(),
   ]);
 
   const featuredTutors: Tutor[] = topProfiles.map((p) => ({
@@ -36,6 +41,7 @@ export default async function HomePage() {
     available: p.available,
     subjects: p.subjects.map((s) => s.subjectName),
     tags: p.tags.map((t) => t.tag),
+    regions: mapRegions(p.regions),
   }));
 
   return (
@@ -49,7 +55,7 @@ export default async function HomePage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="max-w-2xl">
             <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-sm font-medium mb-6">
-              🎓 已服务 10,000+ 学生
+              🎓 已服务 {servedStudentCount > 0 ? `${servedStudentCount.toLocaleString("zh-CN")}+` : "0"} 学生
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
               找到最适合你的<br />
@@ -88,10 +94,10 @@ export default async function HomePage() {
             <p className="mt-3 text-gray-500">覆盖大学主要课程，总有一位老师适合你</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-            {MOCK_SUBJECTS.map((subject) => (
+            {subjects.map((subject) => (
               <Link
                 key={subject.id}
-                href={`/tutors?subject=${subject.id}`}
+                href={`/tutors?q=${encodeURIComponent(subject.name)}`}
                 className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200 border border-transparent transition-all group"
               >
                 <span className="text-3xl">{subject.icon}</span>
@@ -174,27 +180,31 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold text-gray-900">学生好评</h2>
             <p className="mt-3 text-gray-500">真实学生反馈，见证学习成果</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {MOCK_TESTIMONIALS.map((t) => (
-              <div key={t.id} className="bg-white rounded-2xl p-6 shadow-sm">
-                <div className="flex mb-3">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <svg key={i} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-700 text-sm leading-relaxed mb-4">&ldquo;{t.content}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <Image src={t.avatar} alt={t.studentName} width={36} height={36} className="rounded-full bg-indigo-50" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{t.studentName}</p>
-                    <p className="text-xs text-gray-400">{t.subject}</p>
+          {testimonials.length === 0 ? (
+            <p className="text-center text-gray-400 text-sm">暂无评价，完成课程后可留下第一条好评</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonials.map((t) => (
+                <div key={t.id} className="bg-white rounded-2xl p-6 shadow-sm">
+                  <div className="flex mb-3">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <svg key={i} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-4">&ldquo;{t.content}&rdquo;</p>
+                  <div className="flex items-center gap-3">
+                    <Image src={t.avatar} alt={t.studentName} width={36} height={36} className="rounded-full bg-indigo-50" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{t.studentName}</p>
+                      <p className="text-xs text-gray-400">{t.subject}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

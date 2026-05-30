@@ -14,6 +14,7 @@ export const MOCK_TUTORS: Tutor[] = [
     reviewCount: 87,
     bio: "北大数学系研究生，擅长将复杂概念用简单方式讲解，已帮助 80+ 学生通过期末考试。",
     tags: ["耐心细致", "逻辑清晰", "备考专家"],
+    regions: ["西湖区", "上城区"],
     available: true,
   },
   {
@@ -29,6 +30,7 @@ export const MOCK_TUTORS: Tutor[] = [
     reviewCount: 63,
     bio: "雅思 8.0，CET-6 满分，专注英语口语和写作提升，课程生动有趣。",
     tags: ["口语流利", "写作专家", "雅思托福"],
+    regions: ["滨江区"],
     available: true,
   },
   {
@@ -44,6 +46,7 @@ export const MOCK_TUTORS: Tutor[] = [
     reviewCount: 42,
     bio: "ACM 竞赛金牌，LeetCode 2600+，专注算法与数据结构，帮你轻松应对笔试面试。",
     tags: ["ACM金牌", "算法大神", "面试辅导"],
+    regions: ["余杭区", "西湖区"],
     available: false,
   },
   {
@@ -59,6 +62,7 @@ export const MOCK_TUTORS: Tutor[] = [
     reviewCount: 55,
     bio: "物理竞赛全国一等奖，善于用实验和生活案例解释抽象物理概念。",
     tags: ["物理竞赛", "实验教学", "概念清晰"],
+    regions: ["拱墅区"],
     available: true,
   },
   {
@@ -74,6 +78,7 @@ export const MOCK_TUTORS: Tutor[] = [
     reviewCount: 38,
     bio: "经济学院优秀毕业生，擅长用图表和案例讲解经济学原理，期末高分保障。",
     tags: ["图表教学", "案例分析", "期末冲刺"],
+    regions: ["萧山区"],
     available: true,
   },
   {
@@ -89,6 +94,7 @@ export const MOCK_TUTORS: Tutor[] = [
     reviewCount: 71,
     bio: "化学竞赛省级一等奖，实验操作经验丰富，帮助学生建立系统化学知识体系。",
     tags: ["竞赛经验", "实验指导", "系统教学"],
+    regions: ["临平区", "钱塘区"],
     available: true,
   },
 ];

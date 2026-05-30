@@ -20,7 +20,7 @@ export default async function TutorDashboardPage() {
 
   const profile = await prisma.tutorProfile.findUnique({
     where: { userId: session.user.id },
-    include: { subjects: true },
+    include: { subjects: true, regions: true },
   });
 
   const initialData = profile
@@ -29,6 +29,7 @@ export default async function TutorDashboardPage() {
         major: profile.major,
         grade: profile.grade,
         subjects: profile.subjects.map((s) => s.subjectName),
+        regions: profile.regions.map((r) => r.regionName),
         hourlyRate: profile.hourlyRate,
         bio: profile.bio,
       }

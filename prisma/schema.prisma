@@ -114,6 +114,7 @@ model TutorProfile {
   user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   subjects TutorSubject[]
   tags     TutorTag[]
+  regions  TutorRegion[]
   applications Application[]
   reviews  Review[]
 }
@@ -139,6 +140,17 @@ model TutorTag {
   @@unique([tutorProfileId, tag])
 }
 
+model TutorRegion {
+  id             String       @id @default(cuid())
+  tutorProfileId String
+  regionName     String
+
+  tutorProfile TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorProfileId, regionName])
+  @@index([regionName])
+}
+
 model Requirement {
   id           String     @id @default(cuid())
   userId       String
@@ -155,9 +167,21 @@ model Requirement {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   applications Application[]
+  regions      RequirementRegion[]
 
   @@index([subjectName])
   @@index([gradeLevel])
+}
+
+model RequirementRegion {
+  id            String      @id @default(cuid())
+  requirementId String
+  regionName    String
+
+  requirement Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  @@unique([requirementId, regionName])
+  @@index([regionName])
 }
 
 // ── Application (撮合记录) ──────────────────────────────────────────────────

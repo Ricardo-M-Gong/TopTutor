@@ -1,16 +1,23 @@
 import { prisma } from "@/lib/prisma";
-import { MOCK_SUBJECTS } from "@/lib/mock-data";
+import { mapRegions, isValidRegion, REGION_OPTIONS } from "@/lib/regions";
 import type { Tutor } from "@/types";
 import TutorsClient from "@/components/TutorsClient";
 
 const PAGE_SIZE = 9;
 
-async function getTutors(): Promise<Tutor[]> {
+async function getTutors(regions: string[]): Promise<Tutor[]> {
+  const regionFilter =
+    regions.length > 0
+      ? { regions: { some: { regionName: { in: regions } } } }
+      : undefined;
+
   const profiles = await prisma.tutorProfile.findMany({
+    where: regionFilter,
     include: {
       user: { select: { id: true, name: true, avatarUrl: true } },
       subjects: { select: { subjectName: true } },
       tags: { select: { tag: true } },
+      regions: { select: { regionName: true } },
     },
   });
   return profiles.map((p) => ({
@@ -27,6 +34,7 @@ async function getTutors(): Promise<Tutor[]> {
     available: p.available,
     subjects: p.subjects.map((s) => s.subjectName),
     tags: p.tags.map((t) => t.tag),
+    regions: mapRegions(p.regions),
   }));
 }
 
@@ -35,7 +43,14 @@ export default async function TutorsPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const [tutors, params] = await Promise.all([getTutors(), searchParams]);
+  const params = await searchParams;
+
+  const regionsParam = params.regions?.trim() ?? "";
+  const regions = regionsParam
+    ? regionsParam.split(",").map((r) => r.trim()).filter(isValidRegion)
+    : [];
+
+  const tutors = await getTutors(regions);
 
   const q = params.q?.trim().toLowerCase() ?? "";
   const subject = params.subject ?? "";
@@ -46,10 +61,11 @@ export default async function TutorsPage({
   const page = Math.max(1, Number(params.page ?? 1));
 
   // Filter
-  let filtered = tutors.filter((t) => {
+  const filtered = tutors.filter((t) => {
     if (q && !t.name.toLowerCase().includes(q) && !t.subjects.some((s) => s.toLowerCase().includes(q)))
       return false;
     if (subject && !t.subjects.includes(subject)) return false;
+    if (regions.length > 0 && !regions.some((r) => t.regions.includes(r))) return false;
     if (price === "lt50" && t.hourlyRate >= 50) return false;
     if (price === "50-100" && (t.hourlyRate < 50 || t.hourlyRate > 100)) return false;
     if (price === "100-150" && (t.hourlyRate < 100 || t.hourlyRate > 150)) return false;
@@ -63,7 +79,7 @@ export default async function TutorsPage({
   if (sort === "rating") filtered.sort((a, b) => b.rating - a.rating);
   else if (sort === "price_asc") filtered.sort((a, b) => a.hourlyRate - b.hourlyRate);
   else if (sort === "reviews") filtered.sort((a, b) => b.reviewCount - a.reviewCount);
-  else filtered.sort((a, b) => b.rating - a.rating); // recommended = rating desc
+  else filtered.sort((a, b) => b.rating - a.rating);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -79,9 +95,10 @@ export default async function TutorsPage({
       totalPages={totalPages}
       currentPage={currentPage}
       subjects={subjects}
-      mockSubjects={MOCK_SUBJECTS}
+      regionOptions={[...REGION_OPTIONS]}
       initialQ={q}
       initialSubject={subject}
+      initialRegions={regions}
       initialPrice={price}
       initialRating={String(minRating)}
       initialAvailable={availableOnly}

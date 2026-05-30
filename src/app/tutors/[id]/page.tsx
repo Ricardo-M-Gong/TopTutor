@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import BookButton from "@/components/BookButton";
+import { mapRegions } from "@/lib/regions";
 
 export default async function TutorDetailPage({
   params,
@@ -20,6 +21,7 @@ export default async function TutorDetailPage({
         user: { select: { id: true, name: true, avatarUrl: true } },
         subjects: { select: { subjectName: true } },
         tags: { select: { tag: true } },
+        regions: { select: { regionName: true } },
       },
     }),
     prisma.review.findMany({
@@ -120,6 +122,23 @@ export default async function TutorDetailPage({
               ))}
             </div>
           </div>
+
+          {/* Regions */}
+          {profile.regions.length > 0 && (
+            <div className="mb-4">
+              <h2 className="text-sm font-medium text-gray-700 mb-2">服务区域</h2>
+              <div className="flex flex-wrap gap-2">
+                {mapRegions(profile.regions).map((region) => (
+                  <span
+                    key={region}
+                    className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium"
+                  >
+                    {region}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Tags */}
           {profile.tags.length > 0 && (

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import RegionMultiSelect from "@/components/RegionMultiSelect";
+import { REGION_OPTIONS } from "@/lib/regions";
 
 const SUBJECT_OPTIONS = [
   "数学", "英语", "物理", "化学", "生物", "语文", "历史", "地理",
@@ -26,7 +28,7 @@ export default function RequirementForm() {
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
   const [scheduleNote, setScheduleNote] = useState("");
-  const [location, setLocation] = useState("");
+  const [regions, setRegions] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,6 +41,7 @@ export default function RequirementForm() {
 
     if (!effectiveSubject.trim()) return setError("请选择或填写辅导科目");
     if (!gradeLevel) return setError("请选择学员年级");
+    if (regions.length === 0) return setError("请至少选择一个服务区域");
     if (budgetMin && (!Number.isFinite(Number(budgetMin)) || Number(budgetMin) < 0))
       return setError("最低预算必须为非负数");
     if (budgetMax && (!Number.isFinite(Number(budgetMax)) || Number(budgetMax) < 0))
@@ -47,8 +50,7 @@ export default function RequirementForm() {
       return setError("最低预算不能高于最高预算");
     if (!description.trim()) return setError("请填写具体要求描述");
 
-    const combinedNote =
-      [scheduleNote.trim(), location.trim()].filter(Boolean).join("；") || undefined;
+    const combinedNote = scheduleNote.trim() || undefined;
 
     setLoading(true);
     try {
@@ -58,6 +60,7 @@ export default function RequirementForm() {
         body: JSON.stringify({
           subjectName: effectiveSubject.trim(),
           gradeLevel,
+          regions,
           budgetMin: budgetMin ? Number(budgetMin) : undefined,
           budgetMax: budgetMax ? Number(budgetMax) : undefined,
           scheduleNote: combinedNote,
@@ -180,19 +183,16 @@ export default function RequirementForm() {
         />
       </div>
 
-      {/* Location */}
+      {/* Regions */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          上课地点/形式
-          <span className="ml-2 text-xs text-gray-400 font-normal">选填</span>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          服务区域 <span className="text-red-500">*</span>
+          <span className="ml-2 text-xs text-gray-400 font-normal">可多选，选择希望老师上门或就近服务的区域</span>
         </label>
-        <input
-          type="text"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="如：线上视频、北京朝阳区线下"
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-        />
+        <RegionMultiSelect value={regions} onChange={setRegions} options={REGION_OPTIONS} />
+        {regions.length > 0 && (
+          <p className="mt-2 text-xs text-indigo-600">已选：{regions.join("、")}</p>
+        )}
       </div>
 
       {/* Description */}

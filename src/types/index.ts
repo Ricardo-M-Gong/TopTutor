@@ -11,6 +11,7 @@ export interface Tutor {
   reviewCount: number;
   bio: string;
   tags: string[];
+  regions: string[];
   available: boolean;
 }
 

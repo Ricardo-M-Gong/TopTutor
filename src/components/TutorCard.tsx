@@ -68,6 +68,25 @@ export default function TutorCard({ tutor }: TutorCardProps) {
         ))}
       </div>
 
+      {/* Regions */}
+      {tutor.regions.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tutor.regions.slice(0, 2).map((region) => (
+            <span
+              key={region}
+              className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium"
+            >
+              {region}
+            </span>
+          ))}
+          {tutor.regions.length > 2 && (
+            <span className="px-2 py-0.5 rounded-full bg-gray-50 text-gray-400 text-xs">
+              +{tutor.regions.length - 2}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Bio */}
       <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">{tutor.bio}</p>
 

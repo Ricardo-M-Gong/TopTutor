@@ -3,8 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import TutorCard from "@/components/TutorCard";
-import Link from "next/link";
-import type { Tutor, Subject } from "@/types";
+import type { Tutor } from "@/types";
 
 const GRADE_OPTIONS = [
   { label: "不限", value: "" },
@@ -44,9 +43,10 @@ interface Props {
   totalPages: number;
   currentPage: number;
   subjects: string[];
-  mockSubjects: Subject[];
+  regionOptions: string[];
   initialQ: string;
   initialSubject: string;
+  initialRegions: string[];
   initialPrice: string;
   initialRating: string;
   initialAvailable: boolean;
@@ -60,8 +60,10 @@ export default function TutorsClient({
   totalPages,
   currentPage,
   subjects,
+  regionOptions,
   initialQ,
   initialSubject,
+  initialRegions,
   initialPrice,
   initialRating,
   initialAvailable,
@@ -71,9 +73,9 @@ export default function TutorsClient({
   const router = useRouter();
   const pathname = usePathname();
 
-  // Local filter state (apply on button click)
   const [q, setQ] = useState(initialQ);
   const [subject, setSubject] = useState(initialSubject);
+  const [regions, setRegions] = useState<string[]>(initialRegions);
   const [price, setPrice] = useState(initialPrice);
   const [rating, setRating] = useState(initialRating);
   const [available, setAvailable] = useState(initialAvailable);
@@ -81,15 +83,33 @@ export default function TutorsClient({
   const [grade, setGrade] = useState(initialGrade);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  function toggleRegion(r: string) {
+    setRegions((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
+  }
+
   const buildUrl = useCallback(
     (overrides: Record<string, string | undefined> = {}) => {
       const params = new URLSearchParams();
-      const vals = { q, subject, price, rating, available: available ? "1" : "", sort, grade, page: "1", ...overrides };
-      Object.entries(vals).forEach(([k, v]) => { if (v && v !== "all" && v !== "0" && v !== "") params.set(k, v); });
+      const regionsStr = regions.join(",");
+      const vals: Record<string, string> = {
+        q,
+        subject,
+        regions: regionsStr,
+        price,
+        rating,
+        available: available ? "1" : "",
+        sort,
+        grade,
+        page: "1",
+        ...overrides,
+      };
+      Object.entries(vals).forEach(([k, v]) => {
+        if (v && v !== "all" && v !== "0" && v !== "") params.set(k, v);
+      });
       const qs = params.toString();
       return qs ? `${pathname}?${qs}` : pathname;
     },
-    [q, subject, price, rating, available, sort, grade, pathname]
+    [q, subject, regions, price, rating, available, sort, grade, pathname]
   );
 
   function applyFilters() {
@@ -98,7 +118,7 @@ export default function TutorsClient({
   }
 
   function resetFilters() {
-    setQ(""); setSubject(""); setPrice("all"); setRating("0"); setAvailable(false); setSort("recommended"); setGrade("");
+    setQ(""); setSubject(""); setRegions([]); setPrice("all"); setRating("0"); setAvailable(false); setSort("recommended"); setGrade("");
     router.push(pathname);
   }
 
@@ -144,6 +164,27 @@ export default function TutorsClient({
               }`}
             >
               {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Region — multi-select */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-700 mb-1">服务地区</h3>
+        {regions.length > 0 && (
+          <p className="text-xs text-indigo-600 mb-2">已选：{regions.join("、")}</p>
+        )}
+        <div className="flex flex-wrap gap-2">
+          {regionOptions.map((r) => (
+            <button
+              key={r}
+              onClick={() => toggleRegion(r)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                regions.includes(r) ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700"
+              }`}
+            >
+              {r}
             </button>
           ))}
         </div>
@@ -227,7 +268,6 @@ export default function TutorsClient({
     </div>
   );
 
-  // Pagination helper
   function getPages(): (number | "...")[] {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
     if (currentPage <= 4) return [1, 2, 3, 4, 5, "...", totalPages];
@@ -243,15 +283,15 @@ export default function TutorsClient({
           <h1 className="text-3xl font-bold text-gray-900">找家教</h1>
           <p className="mt-1 text-gray-500">
             共找到 <span className="font-semibold text-indigo-600">{total}</span> 位家教
-            {(initialQ || initialSubject) && (
+            {(initialQ || initialSubject || initialRegions.length > 0) && (
               <span className="ml-2 text-sm">
                 {initialQ && <>关键词「{initialQ}」</>}
                 {initialSubject && <>学科「{initialSubject}」</>}
+                {initialRegions.length > 0 && <>地区「{initialRegions.join("、")}」</>}
               </span>
             )}
           </p>
         </div>
-        {/* Mobile filter toggle */}
         <button
           className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600"
           onClick={() => setMobileFiltersOpen(true)}
@@ -260,6 +300,9 @@ export default function TutorsClient({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
           </svg>
           筛选
+          {initialRegions.length > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-xs">{initialRegions.length}</span>
+          )}
         </button>
       </div>
 

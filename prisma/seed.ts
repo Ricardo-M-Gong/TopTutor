@@ -20,6 +20,7 @@ const TUTORS = [
     available: true,
     subjects: ["高等数学", "线性代数", "概率论"],
     tags: ["耐心细致", "逻辑清晰", "备考专家"],
+    regions: ["西湖区", "上城区"],
   },
   {
     email: "zhangyuqing@seed.toptutor.dev",
@@ -35,6 +36,7 @@ const TUTORS = [
     available: true,
     subjects: ["大学英语", "英语写作", "雅思备考"],
     tags: ["口语流利", "写作专家", "雅思托福"],
+    regions: ["滨江区", "余杭区"],
   },
   {
     email: "wanghaoran@seed.toptutor.dev",
@@ -50,6 +52,7 @@ const TUTORS = [
     available: false,
     subjects: ["C++", "数据结构", "算法"],
     tags: ["ACM金牌", "算法大神", "面试辅导"],
+    regions: ["西湖区", "滨江区", "余杭区"],
   },
   {
     email: "chensiqi@seed.toptutor.dev",
@@ -65,6 +68,7 @@ const TUTORS = [
     available: true,
     subjects: ["大学物理", "电磁学", "量子力学"],
     tags: ["物理竞赛", "实验教学", "概念清晰"],
+    regions: ["拱墅区", "临平区"],
   },
   {
     email: "liuzixuan@seed.toptutor.dev",
@@ -80,6 +84,7 @@ const TUTORS = [
     available: true,
     subjects: ["微观经济学", "宏观经济学", "计量经济学"],
     tags: ["图表教学", "案例分析", "期末冲刺"],
+    regions: ["上城区", "萧山区"],
   },
   {
     email: "zhaoxinyi@seed.toptutor.dev",
@@ -95,6 +100,7 @@ const TUTORS = [
     available: true,
     subjects: ["有机化学", "无机化学", "分析化学"],
     tags: ["竞赛经验", "实验指导", "系统教学"],
+    regions: ["西湖区", "钱塘区"],
   },
   {
     email: "sunjiacheng@seed.toptutor.dev",
@@ -110,6 +116,7 @@ const TUTORS = [
     available: true,
     subjects: ["电路分析", "模拟电子技术", "信号与系统"],
     tags: ["竞赛一等奖", "项目驱动", "理论扎实"],
+    regions: ["余杭区", "临平区"],
   },
   {
     email: "linxiaoyu@seed.toptutor.dev",
@@ -125,6 +132,7 @@ const TUTORS = [
     available: true,
     subjects: ["民法", "刑法", "宪法"],
     tags: ["司考高分", "体系梳理", "逻辑清晰"],
+    regions: ["滨江区", "上城区"],
   },
   {
     email: "huangmingzhi@seed.toptutor.dev",
@@ -140,6 +148,7 @@ const TUTORS = [
     available: false,
     subjects: ["建筑设计", "建筑历史", "城市规划"],
     tags: ["设计竞赛", "方案辅导", "手绘高手"],
+    regions: ["拱墅区", "西湖区"],
   },
   {
     email: "wuyanting@seed.toptutor.dev",
@@ -155,6 +164,7 @@ const TUTORS = [
     available: true,
     subjects: ["钢琴基础", "乐理", "考级备考"],
     tags: ["专业演奏", "零基础友好", "考级专家"],
+    regions: ["萧山区", "钱塘区"],
   },
 ];
 
@@ -169,6 +179,7 @@ const REQUIREMENTS = [
     budgetMax: 130,
     scheduleNote: "周末上午，每次 2 小时",
     description: "孩子大一，高数期中考试不及格，需要从极限、导数开始补课，要求老师有耐心。",
+    regions: ["西湖区", "拱墅区"],
   },
   {
     email: "parent2@seed.toptutor.dev",
@@ -179,6 +190,7 @@ const REQUIREMENTS = [
     budgetMax: 150,
     scheduleNote: "工作日晚上 7-9 点",
     description: "备考雅思，目标 7.0 分，目前 6.0，主要需要提升口语和写作，最好老师有高分经历。",
+    regions: ["滨江区"],
   },
   {
     email: "parent3@seed.toptutor.dev",
@@ -189,6 +201,7 @@ const REQUIREMENTS = [
     budgetMax: 180,
     scheduleNote: "灵活安排，每周 2-3 次",
     description: "准备秋招，需要系统复习数据结构和算法，希望老师有大厂面试经验，可以模拟面试。",
+    regions: ["余杭区", "临平区"],
   },
   {
     email: "parent4@seed.toptutor.dev",
@@ -199,6 +212,7 @@ const REQUIREMENTS = [
     budgetMax: 200,
     scheduleNote: "周六下午",
     description: "6 岁孩子，零基础学钢琴，希望老师有耐心，教学方式活泼，不要太枯燥。",
+    regions: ["上城区", "萧山区"],
   },
   {
     email: "parent5@seed.toptutor.dev",
@@ -209,6 +223,7 @@ const REQUIREMENTS = [
     budgetMax: 120,
     scheduleNote: "期末考试前两周，每天都可以",
     description: "期末冲刺，微观经济学和宏观经济学都需要复习，主要是理解各类模型，做题能力较弱。",
+    regions: ["钱塘区", "西湖区"],
   },
 ];
 
@@ -239,6 +254,7 @@ async function main() {
             available: t.available,
             subjects: { create: t.subjects.map((s) => ({ subjectName: s })) },
             tags: { create: t.tags.map((tag) => ({ tag })) },
+            regions: { create: t.regions.map((r) => ({ regionName: r })) },
           },
         },
       },
@@ -265,6 +281,7 @@ async function main() {
         budgetMax: r.budgetMax,
         scheduleNote: r.scheduleNote,
         description: r.description,
+        regions: { create: r.regions.map((region) => ({ regionName: region })) },
       },
     });
     console.log(`  ✓ requirement: ${r.name} — ${r.subjectName}`);

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
+import RegionMultiSelect from "@/components/RegionMultiSelect";
+import { REGION_OPTIONS } from "@/lib/regions";
 
 const SUBJECT_OPTIONS = [
   "数学", "英语", "物理", "化学", "生物", "语文", "历史", "地理",
@@ -19,6 +21,7 @@ interface InitialData {
   major: string;
   grade: string;
   subjects: string[];
+  regions: string[];
   hourlyRate: number;
   bio: string;
 }
@@ -30,6 +33,7 @@ export default function TutorProfileForm({ initialData }: { initialData: Initial
   const [major, setMajor] = useState(initialData?.major ?? "");
   const [grade, setGrade] = useState(initialData?.grade ?? "");
   const [subjects, setSubjects] = useState<string[]>(initialData?.subjects ?? []);
+  const [regions, setRegions] = useState<string[]>(initialData?.regions ?? []);
   const [hourlyRate, setHourlyRate] = useState(
     initialData?.hourlyRate ? String(initialData.hourlyRate) : ""
   );
@@ -49,6 +53,7 @@ export default function TutorProfileForm({ initialData }: { initialData: Initial
     if (!major.trim()) return setError("请填写专业");
     if (!grade) return setError("请选择年级");
     if (subjects.length === 0) return setError("请至少选择一个擅长科目");
+    if (regions.length === 0) return setError("请至少选择一个服务区域");
     const rate = Number(hourlyRate);
     if (!hourlyRate || !Number.isFinite(rate) || rate <= 0) return setError("期望时薪必须为正数");
     if (!bio.trim()) return setError("请填写自我介绍");
@@ -58,7 +63,7 @@ export default function TutorProfileForm({ initialData }: { initialData: Initial
       const res = await fetch("/api/tutor/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ university, major, grade, subjects, hourlyRate: rate, bio }),
+        body: JSON.stringify({ university, major, grade, subjects, regions, hourlyRate: rate, bio }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -145,6 +150,18 @@ export default function TutorProfileForm({ initialData }: { initialData: Initial
         </div>
         {subjects.length > 0 && (
           <p className="mt-2 text-xs text-indigo-600">已选：{subjects.join("、")}</p>
+        )}
+      </div>
+
+      {/* Regions */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          服务区域 <span className="text-red-500">*</span>
+          <span className="ml-2 text-xs text-gray-400 font-normal">可多选</span>
+        </label>
+        <RegionMultiSelect value={regions} onChange={setRegions} options={REGION_OPTIONS} />
+        {regions.length > 0 && (
+          <p className="mt-2 text-xs text-indigo-600">已选：{regions.join("、")}</p>
         )}
       </div>
 
