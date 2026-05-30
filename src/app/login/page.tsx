@@ -9,6 +9,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered");
+  const verified = searchParams.get("verified");
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
   const [email, setEmail] = useState("");
@@ -30,7 +31,11 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setError("邮箱或密码错误，请重试");
+        if (result.error.includes("EMAIL_NOT_VERIFIED")) {
+          setError("EMAIL_NOT_VERIFIED");
+        } else {
+          setError("邮箱或密码错误，请重试");
+        }
         return;
       }
 
@@ -59,6 +64,12 @@ function LoginForm() {
           {registered && (
             <div className="mb-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
               注册成功！请登录你的账号。
+            </div>
+          )}
+
+          {verified && (
+            <div className="mb-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
+              邮箱验证成功，请登录。
             </div>
           )}
 
@@ -119,7 +130,16 @@ function LoginForm() {
 
             {error && (
               <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
-                {error}
+                {error === "EMAIL_NOT_VERIFIED" ? (
+                  <>
+                    邮箱尚未验证，{" "}
+                    <Link href="/verify-email" className="underline font-medium">
+                      重新发送验证邮件
+                    </Link>
+                  </>
+                ) : (
+                  error
+                )}
               </div>
             )}
 

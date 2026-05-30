@@ -242,6 +242,7 @@ async function main() {
         name: t.name,
         avatarUrl: t.avatarUrl,
         role: "TUTOR",
+        emailVerified: new Date(),
         tutorProfile: {
           create: {
             university: t.university,
@@ -270,6 +271,7 @@ async function main() {
         passwordHash: "seed-placeholder",
         name: r.name,
         role: "PARENT",
+        emailVerified: new Date(),
       },
     });
     await prisma.requirement.create({

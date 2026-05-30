@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 
 type Role = "TUTOR" | "PARENT";
 
@@ -37,18 +36,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Auto sign-in after registration
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.ok) {
-        router.push(role === "TUTOR" ? "/dashboard/tutor" : "/dashboard/parent");
-      } else {
-        router.push("/login?registered=1");
-      }
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch {
       setError("网络错误，请稍后重试");
     } finally {

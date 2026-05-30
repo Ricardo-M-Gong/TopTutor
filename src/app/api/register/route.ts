@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/generated/prisma/client";
+import { sendVerificationEmail } from "@/lib/mail";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,7 +46,14 @@ export async function POST(req: NextRequest) {
       select: { id: true, name: true, email: true, role: true },
     });
 
-    return NextResponse.json({ user }, { status: 201 });
+    const token = crypto.randomUUID();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await prisma.verificationToken.create({
+      data: { identifier: email, token, expires },
+    });
+    await sendVerificationEmail(email, token);
+
+    return NextResponse.json({ user, requiresVerification: true }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "服务器错误，请稍后重试" }, { status: 500 });
   }
