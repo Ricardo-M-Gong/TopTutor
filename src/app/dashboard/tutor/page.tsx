@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import TutorProfileForm from "@/components/TutorProfileForm";
 import ApplicationActions from "@/components/ApplicationActions";
 import AvailabilityToggle from "@/components/AvailabilityToggle";
@@ -80,7 +81,15 @@ export default async function TutorDashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900">教员控制台</h1>
             <p className="mt-1 text-sm text-gray-500">欢迎回来，{session.user.name}。</p>
           </div>
-          {profile && <AvailabilityToggle available={profile.available} />}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/settings"
+              className="inline-flex items-center px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              账户设置
+            </Link>
+            {profile && <AvailabilityToggle available={profile.available} />}
+          </div>
         </div>
 
         {/* Stats */}

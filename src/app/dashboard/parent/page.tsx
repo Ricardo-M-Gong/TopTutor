@@ -61,12 +61,20 @@ export default async function ParentDashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900">家长控制台</h1>
             <p className="mt-1 text-sm text-gray-500">欢迎回来，{session.user.name}。</p>
           </div>
-          <Link
-            href="/dashboard/parent/post"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
-          >
-            <span>+</span> 发布新需求
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/settings"
+              className="inline-flex items-center px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              账户设置
+            </Link>
+            <Link
+              href="/dashboard/parent/post"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
+            >
+              <span>+</span> 发布新需求
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}

@@ -3,19 +3,23 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
+import RegionMultiSelect from "@/components/RegionMultiSelect";
+import { REGION_OPTIONS } from "@/lib/regions";
 
 interface ProfileFormProps {
   name: string;
   phone: string;
   email: string;
   role: string;
+  address: string;
 }
 
-function ProfileForm({ name, phone, email, role }: ProfileFormProps) {
+function ProfileForm({ name, phone, email, role, address }: ProfileFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [nameVal, setNameVal] = useState(name);
   const [phoneVal, setPhoneVal] = useState(phone);
+  const [addressVal, setAddressVal] = useState(address);
   const [loading, setLoading] = useState(false);
 
   const ROLE_LABEL: Record<string, string> = {
@@ -30,7 +34,7 @@ function ProfileForm({ name, phone, email, role }: ProfileFormProps) {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: nameVal, phone: phoneVal }),
+        body: JSON.stringify({ name: nameVal, phone: phoneVal, address: addressVal }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -98,12 +102,66 @@ function ProfileForm({ name, phone, email, role }: ProfileFormProps) {
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         />
       </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          常驻地址
+        </label>
+        <input
+          type="text"
+          value={addressVal}
+          onChange={(e) => setAddressVal(e.target.value)}
+          placeholder="如：杭州市西湖区文三路"
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        />
+      </div>
       <button
         type="submit"
         disabled={loading}
         className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors"
       >
         {loading ? "保存中…" : "保存信息"}
+      </button>
+    </form>
+  );
+}
+
+function RegionsForm({ regions }: { regions: string[] }) {
+  const { toast } = useToast();
+  const [selected, setSelected] = useState<string[]>(regions);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (selected.length === 0) return toast("请至少选择一个服务区域", "error");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/user/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regions: selected }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error ?? "保存失败", "error");
+      } else {
+        toast("服务区域已更新");
+      }
+    } catch {
+      toast("网络错误，请重试", "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <RegionMultiSelect value={selected} onChange={setSelected} options={REGION_OPTIONS} />
+      <button
+        type="submit"
+        disabled={loading}
+        className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+      >
+        {loading ? "保存中…" : "保存区域"}
       </button>
     </form>
   );
@@ -201,9 +259,11 @@ interface Props {
   phone: string;
   email: string;
   role: string;
+  address: string;
+  regions: string[];
 }
 
-export default function SettingsClient({ name, phone, email, role }: Props) {
+export default function SettingsClient({ name, phone, email, role, address, regions }: Props) {
   return (
     <main className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 space-y-8">
@@ -214,8 +274,16 @@ export default function SettingsClient({ name, phone, email, role }: Props) {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">基本信息</h2>
-          <ProfileForm name={name} phone={phone} email={email} role={role} />
+          <ProfileForm name={name} phone={phone} email={email} role={role} address={address} />
         </div>
+
+        {role === "TUTOR" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">服务区域</h2>
+            <p className="text-xs text-gray-400 mb-6">选择你可以提供上门服务的区域</p>
+            <RegionsForm regions={regions} />
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">修改密码</h2>
