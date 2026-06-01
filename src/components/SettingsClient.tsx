@@ -132,7 +132,6 @@ function RegionsForm({ regions }: { regions: string[] }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (selected.length === 0) return toast("请至少选择一个服务区域", "error");
     setLoading(true);
     try {
       const res = await fetch("/api/user/settings", {
@@ -281,6 +280,14 @@ export default function SettingsClient({ name, phone, email, role, address, regi
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">服务区域</h2>
             <p className="text-xs text-gray-400 mb-6">选择你可以提供上门服务的区域</p>
+            <RegionsForm regions={regions} />
+          </div>
+        )}
+
+        {(role === "PARENT" || role === "STUDENT") && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">期望服务地区</h2>
+            <p className="text-xs text-gray-400 mb-6">选择你希望接受家教服务的地区，方便匹配合适的教员</p>
             <RegionsForm regions={regions} />
           </div>
         )}

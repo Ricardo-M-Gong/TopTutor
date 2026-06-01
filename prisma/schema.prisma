@@ -60,6 +60,7 @@ model User {
   sentApplications     Application[] @relation("ApplicationSender")
   receivedApplications Application[] @relation("ApplicationReceiver")
   reviews      Review[]
+  userRegions  UserRegion[]
 }
 
 model Account {
@@ -182,6 +183,17 @@ model RequirementRegion {
   requirement Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
 
   @@unique([requirementId, regionName])
+  @@index([regionName])
+}
+
+model UserRegion {
+  id         String @id @default(cuid())
+  userId     String
+  regionName String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, regionName])
   @@index([regionName])
 }
 

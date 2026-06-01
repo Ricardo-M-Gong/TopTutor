@@ -13,28 +13,46 @@ export async function PATCH(req: Request) {
   const { regions } = body;
 
   if (regions !== undefined) {
-    if (!validateRegions(regions)) {
-      return NextResponse.json({ error: "请至少选择一个有效的服务区域" }, { status: 400 });
+    // Allow empty array to clear regions
+    if (!Array.isArray(regions) || !regions.every((r) => typeof r === "string")) {
+      return NextResponse.json({ error: "区域格式无效" }, { status: 400 });
+    }
+    if (regions.length > 0 && !validateRegions(regions)) {
+      return NextResponse.json({ error: "包含无效的服务区域" }, { status: 400 });
     }
 
-    const tutorProfile = await prisma.tutorProfile.findUnique({
-      where: { userId: session.user.id },
-      select: { id: true },
-    });
-
-    if (!tutorProfile) {
-      return NextResponse.json({ error: "请先完善教员资料" }, { status: 400 });
+    if (session.user.role === "TUTOR") {
+      const tutorProfile = await prisma.tutorProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      });
+      if (!tutorProfile) {
+        return NextResponse.json({ error: "请先完善教员资料" }, { status: 400 });
+      }
+      await prisma.$transaction([
+        prisma.tutorRegion.deleteMany({ where: { tutorProfileId: tutorProfile.id } }),
+        ...(regions.length > 0
+          ? [prisma.tutorRegion.createMany({
+              data: (regions as string[]).map((r) => ({
+                tutorProfileId: tutorProfile.id,
+                regionName: r.trim(),
+              })),
+            })]
+          : []),
+      ]);
+    } else {
+      await prisma.$transaction([
+        prisma.userRegion.deleteMany({ where: { userId: session.user.id } }),
+        ...(regions.length > 0
+          ? [prisma.userRegion.createMany({
+              data: (regions as string[]).map((r) => ({
+                userId: session.user.id,
+                regionName: r.trim(),
+              })),
+            })]
+          : []),
+      ]);
     }
-
-    await prisma.$transaction([
-      prisma.tutorRegion.deleteMany({ where: { tutorProfileId: tutorProfile.id } }),
-      prisma.tutorRegion.createMany({
-        data: (regions as string[]).map((r) => ({
-          tutorProfileId: tutorProfile.id,
-          regionName: r.trim(),
-        })),
-      }),
-    ]);
   }
 
   return NextResponse.json({ ok: true });

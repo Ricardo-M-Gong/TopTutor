@@ -9,7 +9,14 @@ export default async function SettingsPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, email: true, phone: true, role: true, address: true },
+    select: {
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      address: true,
+      userRegions: { select: { regionName: true } },
+    },
   });
 
   if (!user) redirect("/login");
@@ -22,6 +29,11 @@ export default async function SettingsPage() {
         })
       : null;
 
+  const regions =
+    user.role === "TUTOR"
+      ? (tutorProfile?.regions.map((r) => r.regionName) ?? [])
+      : user.userRegions.map((r) => r.regionName);
+
   return (
     <SettingsClient
       name={user.name}
@@ -29,7 +41,7 @@ export default async function SettingsPage() {
       email={user.email}
       role={user.role}
       address={user.address ?? ""}
-      regions={tutorProfile?.regions.map((r) => r.regionName) ?? []}
+      regions={regions}
     />
   );
 }
