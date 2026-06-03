@@ -15,11 +15,12 @@ interface Props {
   regions: string[];
 }
 
-function ProfileForm({ name, phone, email, role }: Pick<Props, "name" | "phone" | "email" | "role">) {
+function ProfileForm({ name, phone, email, role, address }: Pick<Props, "name" | "phone" | "email" | "role" | "address">) {
   const router = useRouter();
   const { toast } = useToast();
   const [nameVal, setNameVal] = useState(name);
   const [phoneVal, setPhoneVal] = useState(phone);
+  const [addressVal, setAddressVal] = useState(address);
   const [loading, setLoading] = useState(false);
 
   const ROLE_LABEL: Record<string, string> = {
@@ -34,7 +35,7 @@ function ProfileForm({ name, phone, email, role }: Pick<Props, "name" | "phone" 
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: nameVal, phone: phoneVal }),
+        body: JSON.stringify({ name: nameVal, phone: phoneVal, address: addressVal }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -102,56 +103,6 @@ function ProfileForm({ name, phone, email, role }: Pick<Props, "name" | "phone" 
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         />
       </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors"
-      >
-        {loading ? "保存中…" : "保存信息"}
-      </button>
-    </form>
-  );
-}
-
-function AddressAndRegionsForm({ role, address, regions }: Pick<Props, "role" | "address" | "regions">) {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [addressVal, setAddressVal] = useState(address);
-  const [selected, setSelected] = useState<string[]>(regions);
-  const [loading, setLoading] = useState(false);
-
-  const regionLabel =
-    role === "TUTOR" ? "服务区域" : "期望服务地区";
-  const regionHint =
-    role === "TUTOR"
-      ? "选择你可以提供上门服务的区域"
-      : "选择你希望接受家教服务的地区，方便匹配合适的教员";
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await fetch("/api/user/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: addressVal, regions: selected }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        toast(data.error ?? "保存失败", "error");
-      } else {
-        toast("设置已保存");
-        router.refresh();
-      }
-    } catch {
-      toast("网络错误，请重试", "error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           常驻地址
@@ -164,17 +115,61 @@ function AddressAndRegionsForm({ role, address, regions }: Pick<Props, "role" | 
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         />
       </div>
-      <div>
-        <p className="text-sm font-medium text-gray-700 mb-1">{regionLabel}</p>
-        <p className="text-xs text-gray-400 mb-3">{regionHint}</p>
-        <RegionMultiSelect value={selected} onChange={setSelected} options={REGION_OPTIONS} />
-      </div>
       <button
         type="submit"
         disabled={loading}
         className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors"
       >
-        {loading ? "保存中…" : "保存设置"}
+        {loading ? "保存中…" : "保存信息"}
+      </button>
+    </form>
+  );
+}
+
+function RegionsForm({ role, regions }: Pick<Props, "role" | "regions">) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [selected, setSelected] = useState<string[]>(regions);
+  const [loading, setLoading] = useState(false);
+
+  const regionHint =
+    role === "TUTOR"
+      ? "选择你可以提供上门服务的区域"
+      : "选择你希望接受家教服务的地区，方便匹配合适的教员";
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch("/api/user/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regions: selected }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error ?? "保存失败", "error");
+      } else {
+        toast("服务区域已保存");
+        router.refresh();
+      }
+    } catch {
+      toast("网络错误，请重试", "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <p className="text-xs text-gray-400">{regionHint}</p>
+      <RegionMultiSelect value={selected} onChange={setSelected} options={REGION_OPTIONS} />
+      <button
+        type="submit"
+        disabled={loading}
+        className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+      >
+        {loading ? "保存中…" : "保存区域"}
       </button>
     </form>
   );
@@ -282,12 +277,14 @@ export default function DashboardSettingsClient({ name, email, phone, role, addr
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">基本信息</h2>
-          <ProfileForm name={name} email={email} phone={phone} role={role} />
+          <ProfileForm name={name} email={email} phone={phone} role={role} address={address} />
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">地址与服务区域</h2>
-          <AddressAndRegionsForm role={role} address={address} regions={regions} />
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            {role === "TUTOR" ? "服务区域" : "期望服务地区"}
+          </h2>
+          <RegionsForm role={role} regions={regions} />
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
