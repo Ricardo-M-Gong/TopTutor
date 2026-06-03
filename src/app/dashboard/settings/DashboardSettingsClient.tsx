@@ -7,12 +7,113 @@ import RegionMultiSelect from "@/components/RegionMultiSelect";
 import { REGION_OPTIONS } from "@/lib/regions";
 
 interface Props {
+  name: string;
+  email: string;
+  phone: string;
   role: string;
   address: string;
   regions: string[];
 }
 
-function AddressAndRegionsForm({ role, address, regions }: Props) {
+function ProfileForm({ name, phone, email, role }: Pick<Props, "name" | "phone" | "email" | "role">) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [nameVal, setNameVal] = useState(name);
+  const [phoneVal, setPhoneVal] = useState(phone);
+  const [loading, setLoading] = useState(false);
+
+  const ROLE_LABEL: Record<string, string> = {
+    TUTOR: "大学生教员", PARENT: "家长 / 学员", STUDENT: "学员", ADMIN: "管理员",
+  };
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nameVal.trim()) return toast("姓名不能为空", "error");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: nameVal, phone: phoneVal }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error ?? "保存失败", "error");
+      } else {
+        toast("基本信息已更新");
+        router.refresh();
+      }
+    } catch {
+      toast("网络错误，请重试", "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            邮箱 <span className="text-xs text-gray-400 font-normal">（不可修改）</span>
+          </label>
+          <input
+            type="email"
+            value={email}
+            disabled
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            身份 <span className="text-xs text-gray-400 font-normal">（不可修改）</span>
+          </label>
+          <input
+            type="text"
+            value={ROLE_LABEL[role] ?? role}
+            disabled
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          姓名 <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          value={nameVal}
+          onChange={(e) => setNameVal(e.target.value)}
+          required
+          placeholder="请输入姓名"
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          手机号
+          <span className="ml-2 text-xs text-gray-400 font-normal">对方接受申请后可见，用于双方联系</span>
+        </label>
+        <input
+          type="tel"
+          value={phoneVal}
+          onChange={(e) => setPhoneVal(e.target.value)}
+          placeholder="如：13812345678"
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+      >
+        {loading ? "保存中…" : "保存信息"}
+      </button>
+    </form>
+  );
+}
+
+function AddressAndRegionsForm({ role, address, regions }: Pick<Props, "role" | "address" | "regions">) {
   const router = useRouter();
   const { toast } = useToast();
   const [addressVal, setAddressVal] = useState(address);
@@ -170,13 +271,18 @@ function PasswordForm() {
   );
 }
 
-export default function DashboardSettingsClient({ role, address, regions }: Props) {
+export default function DashboardSettingsClient({ name, email, phone, role, address, regions }: Props) {
   return (
     <main className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 space-y-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">账户设置</h1>
-          <p className="mt-1 text-sm text-gray-500">管理你的常驻地址、服务区域和账户安全</p>
+          <p className="mt-1 text-sm text-gray-500">管理你的个人信息和账户安全</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">基本信息</h2>
+          <ProfileForm name={name} email={email} phone={phone} role={role} />
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">

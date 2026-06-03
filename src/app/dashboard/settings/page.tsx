@@ -11,6 +11,9 @@ export default async function DashboardSettingsPage() {
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
+        name: true,
+        email: true,
+        phone: true,
         address: true,
         role: true,
         userRegions: { select: { regionName: true } },
@@ -33,6 +36,9 @@ export default async function DashboardSettingsPage() {
 
   return (
     <DashboardSettingsClient
+      name={user.name}
+      email={user.email}
+      phone={user.phone ?? ""}
       role={user.role}
       address={user.address ?? ""}
       regions={regions}
