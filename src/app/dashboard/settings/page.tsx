@@ -1,9 +1,9 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import SettingsClient from "@/components/SettingsClient";
+import DashboardSettingsClient from "./DashboardSettingsClient";
 
-export default async function SettingsPage() {
+export default async function DashboardSettingsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
@@ -11,11 +11,8 @@ export default async function SettingsPage() {
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
         address: true,
+        role: true,
         userRegions: { select: { regionName: true } },
       },
     }),
@@ -35,10 +32,7 @@ export default async function SettingsPage() {
       : user.userRegions.map((r) => r.regionName);
 
   return (
-    <SettingsClient
-      name={user.name}
-      phone={user.phone ?? ""}
-      email={user.email}
+    <DashboardSettingsClient
       role={user.role}
       address={user.address ?? ""}
       regions={regions}

@@ -83,7 +83,7 @@ export default async function TutorDashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link
-              href="/settings"
+              href="/dashboard/settings"
               className="inline-flex items-center px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               账户设置

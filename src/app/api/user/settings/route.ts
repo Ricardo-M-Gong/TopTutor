@@ -9,11 +9,21 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "请先登录" }, { status: 401 });
   }
 
-  const body = await req.json() as { regions?: unknown };
-  const { regions } = body;
+  const body = await req.json() as { regions?: unknown; address?: unknown };
+  const { regions, address } = body;
+
+  // Update address if provided
+  if (address !== undefined) {
+    if (typeof address !== "string") {
+      return NextResponse.json({ error: "地址格式无效" }, { status: 400 });
+    }
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { address: address.trim() },
+    });
+  }
 
   if (regions !== undefined) {
-    // Allow empty array to clear regions
     if (!Array.isArray(regions) || !regions.every((r) => typeof r === "string")) {
       return NextResponse.json({ error: "区域格式无效" }, { status: 400 });
     }
